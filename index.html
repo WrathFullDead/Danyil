@@ -126,6 +126,29 @@ label.r{display:block;padding:3px 0;font-size:14px}
 .res.bad{color:var(--err)}
 .ans{display:none;background:#fff8d8;border:1px dashed #c9a400;padding:6px 8px;margin-top:6px;font-size:14px}
 .ans.show{display:block}
+.irow.r2{background:#c3c8cc}
+.pg.sub{width:auto;min-width:62px;padding:2px 8px}
+.pg.sub.on{background:#2fae5a;color:#fff;box-shadow:none}
+.pg.sub.on svg{color:#fff}
+.pgh{background:#2fae5a;color:#123;font-weight:700;padding:4px 10px;font-size:16px}
+#vParam{background:#d6d9dc;min-height:100%}
+.plist{padding:10px 14px}
+.prow{display:grid;grid-template-columns:1fr 130px 60px;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid #bfc4c8;cursor:pointer}
+.prow.sel{background:#eef4fb}
+.prow .pn{font-weight:600;text-align:right}
+.pval{height:40px;background:#fff;border:1px solid #555;border-radius:2px;font-size:17px;font-weight:700;text-align:right;padding:0 10px}
+.pval.b{background:var(--blue);color:#fff;text-align:center}
+.prow.sel .pval{outline:3px solid #ffb300}
+.pcalc{padding:4px 14px 12px;font-size:13px;line-height:1.9}
+table.act th{background:#a9afb4;text-align:left;padding:4px 6px}
+table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
+.bq.big{font-size:26px;font-weight:700;width:60px;height:52px}
+.bq sup{font-size:11px}
+#symInfo small{font-weight:400;font-size:13px}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.keys button{height:48px;font-size:20px;border:1px solid #666;border-radius:3px;background:#fff}
+.procbar{display:flex;justify-content:space-between;background:#3d444c;color:#ffd84d;padding:6px 10px;margin-bottom:6px;font-size:15px}
+.dlg.proc{background:rgba(0,0,0,.15)}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -164,17 +187,24 @@ label.r{display:block;padding:3px 0;font-size:14px}
   <div id="body">
     <div id="centre">
       <div class="irow" id="pages1"></div>
+      <div class="irow r2" id="pages2" style="display:none"></div>
       <div id="scroll">
+        <div id="vParam" style="display:none"></div>
+        <div id="vFlow">
         <div class="ph">Produktionsablauf Maschine <span id="flowMode"></span></div>
         <div id="flowWrap"><svg id="flow"></svg></div>
         <div class="sec show" id="secMach"><div class="ph">Maschine <span id="machState"></span></div><svg id="mach" viewBox="0 0 900 270"></svg></div>
         <div class="sec show" id="secGantt"><div class="ph">Zeitdiagramm <span id="tInfo"></span></div><svg id="gantt"></svg></div>
         <div class="sec show" id="secMsg"><div class="ph">Meldungen</div><ul id="msgs"></ul></div>
+        </div>
       </div>
       <div id="foot">
         <div id="symInfo">Symbol: –</div>
         <button class="bq" id="bTasks" title="Aufgaben">⚑</button>
         <button class="bq" id="bEdit" title="Ablauf editieren">✎</button>
+        <button class="bq big" id="pF" title="Wert eingeben" style="display:none">✎<sup>F</sup></button>
+        <button class="bq big" id="pN" title="nein / abbrechen" style="display:none">N</button>
+        <button class="bq big" id="pY" title="ja / bestätigen" style="display:none">Y</button>
       </div>
 
       <div id="edit">
@@ -196,6 +226,7 @@ label.r{display:block;padding:3px 0;font-size:14px}
     </div>
 
     <div id="side">
+      <button class="sd" id="sProc" title="Prozessansicht: Werkzeug im Schnitt">◫<small>Prozess</small></button>
       <button class="sd" id="sMach" title="Maschinenansicht ein/aus">▣<small>Maschine</small></button>
       <button class="sd" id="sGantt" title="Zeitdiagramm ein/aus">▤<small>Zeiten</small></button>
       <button class="sd y" id="sMsg" title="Meldungen ein/aus">⚠<small>Meldungen</small></button>
@@ -251,7 +282,7 @@ label.r{display:block;padding:3px 0;font-size:14px}
 <div class="dlg" id="dMach"><div class="dbox">
   <div class="dh"><span>⚙ Maschine / Werkzeug / Zeiten</span><button data-close>×</button></div>
   <div class="db" id="machBody"></div>
-  <div class="df"><button class="dbtn" id="durReset">Zeiten zurücksetzen</button><button class="dbtn pri" data-close>OK</button></div>
+  <div class="df"><button class="dbtn" id="durReset">Parameter zurücksetzen</button><button class="dbtn pri" data-close>OK</button></div>
 </div></div>
 
 <!-- Dialog: Aufgaben -->
@@ -272,6 +303,23 @@ label.r{display:block;padding:3px 0;font-size:14px}
   <div class="dh"><span>Bestätigen</span><button data-close>×</button></div>
   <div class="db" id="confTxt"></div>
   <div class="df"><button class="dbtn" data-close>Abbrechen</button><button class="dbtn pri" id="confOk">OK</button></div>
+</div></div>
+
+<div class="dlg" id="dKey"><div class="dbox" style="width:min(340px,94vw)">
+  <div class="dh"><span id="kTitle">Wert</span><button data-close>×</button></div>
+  <div class="db"><div class="hint" id="kRange" style="padding:0 0 6px"></div><input id="kIn" inputmode="decimal" style="width:100%;font-size:24px;padding:6px;text-align:right">
+  <div id="kKeys" class="keys"><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k=",">,</button><button data-k="0">0</button><button data-k="<">⌫</button><button data-k="C" style="grid-column:span 3">C</button></div></div>
+  <div class="df"><button class="bq big" data-close>N</button><button class="bq big" id="kY">Y</button></div>
+</div></div>
+
+<div class="dlg proc" id="dProc"><div class="dbox" style="width:min(820px,98vw)">
+  <div class="dh"><span>◫ Prozessansicht – Werkzeug im Schnitt</span><button data-close>×</button></div>
+  <div class="db">
+    <div class="procbar"><b id="procPhase">Stillstand</b><span id="procTime"></span></div>
+    <svg id="procSvg" viewBox="0 0 760 400" style="width:100%;height:auto;display:block;border:1px solid #999"></svg>
+    <div class="hint" id="procInfo"></div>
+  </div>
+  <div class="df"><button class="dbtn" id="pSingle">▽ 1 Zyklus</button><button class="dbtn" id="pAuto">⟳ Automatik</button><button class="dbtn" id="pStop">■ Stopp</button><button class="dbtn pri" data-close>Schließen</button></div>
 </div></div>
 
 <div id="toast"></div>
@@ -306,7 +354,6 @@ const SYM = {
   mon1_start: {n:'Überwachung 1 Start (z. B. Ausdrehkern ausdrehen)',s:'Überw.1 ▸',g:'mon',d:1.5,res:['core'],hyd:true,row:'core'},
   mon1_end:   {n:'Überwachung 1 Stopp (z. B. Ausdrehkern eindrehen)', s:'Überw.1 ■',g:'mon',d:1.5,res:['core'],hyd:true,row:'core'},
 };
-const DEF_DUR = Object.fromEntries(Object.entries(SYM).map(([k,v])=>[k,v.d]));
 const GROUPS = [
   ['all','alle'],['clamp','Werkzeug'],['inj','Einspritzeinheit'],['noz','Düse'],['ej','Auswerfer'],
   ['door','Schutztür'],['valve','Ventile / Luft'],['mon','Überwachungseingänge']
@@ -422,7 +469,6 @@ const DRIVES = {
 let cfg = {
   drive:'elec', machNo:'231969', machType:'370 E 600-290',
   tool:{stickEj:false,stickNozzle:false,insert:false,sprue:false,core:false},
-  dur:{...DEF_DUR}
 };
 let prog = parse(GRUND);
 let sel = null;           // id
@@ -438,12 +484,11 @@ function load(){
   try{
     const s = JSON.parse(localStorage.getItem('sgmTrainer')||'null');
     if(!s) return;
-    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, dur:{...DEF_DUR,...(s.cfg.dur||{})}}; }
+    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, p:{...PDEFV,...(s.cfg.p||{})}}; }
     if(typeof s.dsl==='string') prog = parse(s.dsl);
     curTask = s.curTask||null; taskRes = s.taskRes||{};
   }catch(e){}
 }
-const dur = t => +cfg.dur[t] || 0;
 
 function find(id){
   for(let c=0;c<prog.cols.length;c++){
@@ -702,6 +747,8 @@ function plausibility(sch){
   if(tool.insert && has('ej_stop') && !has('door_open')) res.info.push('Zwischenstopp: Bediener öffnet die Schutztür von Hand, legt ein und schließt wieder. (Aufgabe 4: automatisch!)');
   if(tool.sprue && !has('nozzle_back')) res.warn.push({msg:'Stangenanguss: Düse bleibt dauerhaft angelegt → Düse kühlt ab. Düse zurück programmieren.'});
   if(tool.core && !(has('mon1_start')&&has('mon1_end'))) res.warn.push({msg:'Ausdrehkern wird nicht angesteuert → Überwachung 1 Start und Stopp programmieren.'});
+  paramChecks(res);
+  if(res.errGlobal){ const x=sch.items.find(i=>i.t==='inject'||i.t==='dose'); if(x){ res.err[0][x.id]=res.errGlobal; res.err[1][x.id]=res.errGlobal; } }
   // Doppelte Warnungen entfernen
   const seen=new Set(); res.warn=res.warn.filter(w=>!seen.has(w.msg)&&seen.add(w.msg));
   return res;
@@ -771,14 +818,14 @@ function replay(start, sch, t){
 /* =====================================================================
    SIMULATION
    ===================================================================== */
-let SCH=schedule(), PL=plausibility(SCH);
+let SCH={items:[],T:0,notes:[]}, PL={err:[{},{}],warn:[],info:[]};
 const sim={running:false,auto:false,t:0,cycle:0,parts:0,paused:false,waitDone:new Set(),start:contStart(),alarm:null,stopReq:false,lastIst:0,cycStartWall:0};
 let lastFrame=performance.now();
 
 function changed(){
   SCH=schedule(); PL=plausibility(SCH);
   if(sim.running){ stopSim(true); setAlarm('warn','Ablauf geändert – Simulation gestoppt.'); }
-  save(); renderAll();
+  save(); renderAll(); if(view!=='flow') renderPages();
 }
 function startSim(auto){
   if(sim.alarm && sim.alarm.type==='err'){ toast('Bitte zuerst Alarm quittieren (Grundstellung).'); return; }
@@ -802,7 +849,7 @@ function finishPart(S){
 }
 function resetSim(){
   sim.running=false; sim.auto=false; sim.t=0; sim.paused=false; sim.alarm=null; sim.start=contStart(); sim.cycle=0;
-  setAlarm('ok','Grundstellung – bereit'); updateButtons(); renderMachine(); renderFlow(); renderGantt();
+  setAlarm('ok','Grundstellung – bereit'); updateButtons(); renderMachine(); renderFlow(); renderGantt(); if(typeof renderProcess==='function') renderProcess();
 }
 function tick(now){
   const dt=Math.min(0.1,(now-lastFrame)/1000); lastFrame=now;
@@ -830,13 +877,14 @@ function tick(now){
     if(sim.t>=SCH.T){
       const end=replay(sim.start,SCH,SCH.T);
       if(end.part.fallAt!==null) sim.parts++;
+      logCycle(end.part.fallAt!==null);
       finishPart(end); sim.start=end; sim.cycle++;
       sim.lastIst=(performance.now()-sim.cycStartWall)/1000*(+document.getElementById('speed').value);
       if(sim.auto && !sim.stopReq){ sim.t=0; sim.waitDone=new Set(); sim.cycStartWall=performance.now(); }
       else { sim.running=false; sim.t=0; setAlarm('ok','Zyklus beendet'); updateButtons(); }
     }
   }
-  if(sim.running || sim.paused) { renderMachine(); renderFlowState(); renderGanttCursor(); updateKPI(); }
+  if(sim.running || sim.paused) { renderMachine(); renderFlowState(); renderGanttCursor(); updateKPI(); renderProcess(); }
   requestAnimationFrame(tick);
 }
 
@@ -883,7 +931,7 @@ function renderFlow(){
   svg.setAttribute('width',W); svg.setAttribute('height',H);
   svg.innerHTML=`<g stroke="#2b2b2b" stroke-width="1.6">${lines}</g>${out}`;
   const r=find(sel);
-  document.getElementById('symInfo').textContent='Symbol: '+(r? SYM[r.it.t].n + (r.ch==='branch'?'  (parallel)':'') + '  ·  '+dur(r.it.t).toFixed(2).replace('.',',')+' s':'–');
+  if(view==='flow') document.getElementById('symInfo').textContent='Symbol: '+(r? SYM[r.it.t].n + (r.ch==='branch'?'  (parallel)':'') + '  ·  '+dur(r.it.t).toFixed(2).replace('.',',')+' s':'–');
   document.getElementById('flowMode').textContent = moveSrc? 'Verschieben: Zielsymbol antippen …' : (curTask? 'Aufgabe: '+TASKS.find(t=>t.id===curTask).t : '');
 }
 function renderFlowState(){
@@ -1122,21 +1170,18 @@ function renderMach(){
   Object.entries(DRIVES).forEach(([k,v])=>h+=`<label class="r"><input type="radio" name="drv" value="${k}" ${cfg.drive===k?'checked':''}> ${v.n}</label>`);
   h+=`</fieldset><fieldset><legend>Werkzeug / Prozess</legend>`;
   Object.entries(tl).forEach(([k,n])=>h+=`<label class="r"><input type="checkbox" data-tool="${k}" ${cfg.tool[k]?'checked':''}> ${n}</label>`);
-  h+=`</fieldset><fieldset><legend>Zeiten der Symbole [s]</legend><table class="cfg">`;
-  Object.keys(SYM).filter(k=>k!=='start'&&k!=='end').forEach(k=>h+=`<tr><td>${SYM[k].n}</td><td><input type="number" min="0" step="0.1" data-dur="${k}" value="${cfg.dur[k]}"></td></tr>`);
-  h+=`</table></fieldset>`;
+  h+=`</fieldset><p class="hint">Zeiten, Wege, Geschwindigkeiten, Drücke und Temperaturen werden auf den Parameterseiten (Kacheln oben) eingestellt.</p>`;
   $('machBody').innerHTML=h;
 }
 $('machBody').addEventListener('change',e=>{
   const el=e.target;
   if(el.name==='drv') cfg.drive=el.value;
   else if(el.dataset.tool) cfg.tool[el.dataset.tool]=el.checked;
-  else if(el.dataset.dur) cfg.dur[el.dataset.dur]=Math.max(0,parseFloat(el.value)||0);
   else if(el.id==='cNo') cfg.machNo=el.value;
   else if(el.id==='cType') cfg.machType=el.value;
   changed();
 });
-$('durReset').onclick=()=>{ cfg.dur={...DEF_DUR}; renderMach(); changed(); };
+$('durReset').onclick=()=>{ cfg.p={...PDEFV}; renderMach(); changed(); toast('Alle Parameter auf Standard'); };
 
 // --- Aufgaben ---
 function norm(dsl,core){ return core? dsl.replace(/mon1_(start|end)/g,'mon1') : dsl; }
@@ -1258,7 +1303,7 @@ $('bImport').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   f.text().then(txt=>{
-    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},dur:{...DEF_DUR,...(d.cfg.dur||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
+    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},p:{...PDEFV,...(d.cfg.p||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
     catch(err){ toast('Datei ungültig'); }
   });
   e.target.value='';
@@ -1272,11 +1317,306 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('resize',()=>{ renderGantt(); });
 
-/* Seitenleiste / Seitenkacheln */
-const PAGES=[['mold_close','Werkzeug'],['ej_fwd','Auswerfer'],['nozzle_fwd','Düse'],['inject','Einspritzen'],['hold','Nachdruck'],['dose','Dosieren'],['cool','Kühlen'],['door_open','Schutztür'],['blow_start','Ventile'],['mon1_start','Überw. 1']];
-$('pages1').innerHTML=PAGES.map(([t,n])=>`<button class="pg" data-t="${t}" title="${n}: Zeiten einstellen">${glyphSVG(t,36)}<span>${n}</span></button>`).join('');
-$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; renderMach(); openDlg('dMach');
-  setTimeout(()=>{ const el=document.querySelector(`[data-dur="${b.dataset.t}"]`); if(el){ el.scrollIntoView({block:'center'}); el.focus(); } },50); });
+/* =====================================================================
+   PARAMETERSEITEN (Einstellwerte) – eigene Nummerierung P###
+   ===================================================================== */
+const MAT = {PP:[200,280,230],PE:[180,280,220],ABS:[210,270,240],PA6:[240,290,260],PC:[280,320,300]};
+const PDEF = {
+  // Werkzeug
+  P101:{n:'Schließgeschwindigkeit',u:'mm/s',v:250,min:10,max:600},
+  P102:{n:'Werkzeugsicherung Zeit',u:'s',v:0.2,min:0.05,max:2,st:0.05},
+  P103:{n:'Schließkraft',u:'kN',v:600,min:50,max:600},
+  P104:{n:'Werkzeugsicherung aktiv',t:'bool',v:true},
+  P111:{n:'Öffnungsweg',u:'mm',v:250,min:50,max:400},
+  P112:{n:'Öffnungsgeschwindigkeit',u:'mm/s',v:300,min:10,max:600},
+  // Auswerfer
+  P201:{n:'Auswerferweg',u:'mm',v:40,min:1,max:150},
+  P202:{n:'Geschwindigkeit Auswerfer vor',u:'mm/s',v:100,min:5,max:400},
+  P203:{n:'Geschwindigkeit Auswerfer zurück',u:'mm/s',v:120,min:5,max:400},
+  P204:{n:'Anzahl Rüttelhübe',u:'',v:3,min:1,max:10,st:1},
+  P205:{n:'Zwischenstopp-Position',u:'mm',v:20,min:0,max:150},
+  P206:{n:'Auswerfer bei Hand freigegeben',t:'bool',v:true},
+  // Düse
+  P301:{n:'Düsenweg',u:'mm',v:40,min:5,max:250},
+  P302:{n:'Geschwindigkeit Düse',u:'mm/s',v:60,min:5,max:200},
+  P303:{n:'Düsenanlagekraft',u:'kN',v:40,min:5,max:60},
+  // Einspritzen
+  P401:{n:'Einspritzstrom',u:'cm³/s',v:20,min:1,max:120},
+  P402:{n:'Spritzdruckbegrenzung',u:'bar',v:1500,min:100,max:2500,st:10},
+  P403:{n:'Umschaltpunkt (Volumen)',u:'cm³',v:5,min:0,max:48,st:0.5},
+  P411:{n:'Nachdruck',u:'bar',v:600,min:0,max:2000,st:10},
+  P412:{n:'Nachdruckzeit',u:'s',v:2.0,min:0,max:30,st:0.1},
+  // Dosieren
+  P420:{n:'separater Staudruck bei Hand',t:'bool',v:false},
+  P421:{n:'Dosieren verzögert (Dosierverzögerung)',t:'bool',v:false},
+  P422:{n:'Dosiervolumen',u:'cm³',v:20,min:1,max:48,st:0.5},
+  P423:{n:'Umfangsgeschwindigkeit Schnecke',u:'m/min',v:15,min:1,max:40},
+  P424:{n:'Staudruck',u:'bar',v:80,min:0,max:300,st:5},
+  P425:{n:'Dekompressionsvolumen',u:'cm³',v:2,min:0,max:10,st:0.5},
+  P426:{n:'Dekompressionsstrom',u:'cm³/s',v:10,min:1,max:50},
+  P430:{n:'Restkühlzeit',u:'s',v:5.0,min:0,max:120,st:0.1},
+  // Temperaturen
+  P501:{n:'Heizung Zylinder ein',t:'bool',v:true},
+  P502:{n:'Material',t:'sel',v:'PP',opts:Object.keys(MAT)},
+  P510:{n:'Temperatur Düse',u:'°C',v:230,min:0,max:400},
+  P511:{n:'Temperatur Zone 4 (vorn)',u:'°C',v:230,min:0,max:400},
+  P512:{n:'Temperatur Zone 3',u:'°C',v:225,min:0,max:400},
+  P513:{n:'Temperatur Zone 2',u:'°C',v:215,min:0,max:400},
+  P514:{n:'Temperatur Zone 1 (Einzug)',u:'°C',v:200,min:0,max:400},
+  P515:{n:'Temperatur Einzugsflansch',u:'°C',v:40,min:0,max:80},
+  P520:{n:'Werkzeugtemperatur',u:'°C',v:40,min:10,max:140},
+  P521:{n:'Kühlwasser ein',t:'bool',v:true},
+  // Peripherie
+  P601:{n:'Bewegungszeit Schutztür',u:'s',v:1.2,min:0.3,max:5,st:0.1},
+  P611:{n:'Blaszeit Ausblasventil 1',u:'s',v:0.8,min:0.1,max:10,st:0.1},
+  P621:{n:'Überwachungszeit Eingang 1 (Kern)',u:'s',v:1.5,min:0.1,max:20,st:0.1},
+  P622:{n:'Überwachung 1 aktiv',t:'bool',v:true},
+};
+const PDEFV = Object.fromEntries(Object.entries(PDEF).map(([k,d])=>[k,d.v]));
+cfg.p = {...PDEFV};
+const pv = k => cfg.p[k];
+function dur(t){
+  switch(t){
+    case 'mold_close': return pv('P111')/pv('P101') + (pv('P104')?pv('P102'):0);
+    case 'mold_open':  return pv('P111')/pv('P112');
+    case 'inject':     return Math.max(0.05,(pv('P422')-pv('P403'))/pv('P401'));
+    case 'hold':       return pv('P412');
+    case 'cool':       return pv('P430');
+    case 'dose':       return pv('P422')/(0.42*pv('P423')*Math.max(0.2,1-pv('P424')/600)) + (pv('P421')?0.5:0);
+    case 'decomp':     return pv('P425')/pv('P426');
+    case 'nozzle_fwd': case 'nozzle_back': return pv('P301')/pv('P302');
+    case 'ej_fwd':     return pv('P201')/pv('P202');
+    case 'ej_back':    return pv('P201')/pv('P203');
+    case 'ej_stop':    return Math.max(0.05,(pv('P201')-pv('P205'))/pv('P203'));
+    case 'ej_vib':     return pv('P204')*pv('P201')*0.5*(1/pv('P202')+1/pv('P203'));
+    case 'door_open': case 'door_close': return pv('P601');
+    case 'blow_start': return 0.1;
+    case 'blow_end':   return pv('P611');
+    case 'mon1_start': case 'mon1_end': return pv('P621');
+  }
+  return 0;
+}
+/* Prozessprüfung aus Einstellwerten */
+function paramChecks(res){
+  const [mn,mx]=MAT[pv('P502')];
+  const zones=['P510','P511','P512','P513'].map(pv);
+  if(!pv('P501')) res.errGlobal='Heizung Zylinder aus – Kaltstartschutz: Dosieren/Einspritzen gesperrt.';
+  else if(Math.min(...zones)<mn) res.errGlobal=`Kaltstartschutz: Zylindertemperatur unter Minimum für ${pv('P502')} (${mn} °C).`;
+  if(Math.max(...zones)>mx) res.warn.push({msg:`Zylindertemperatur über ${mx} °C – thermische Schädigung von ${pv('P502')} möglich.`});
+  const cushion=pv('P403')-pv('P411')/600*1.2;
+  if(cushion<=0) res.warn.push({msg:'Kein Massepolster – Umschaltpunkt/Dosiervolumen erhöhen, sonst unvollständige Formteile.'});
+  if(pv('P422')<=pv('P403')) res.warn.push({msg:'Umschaltpunkt größer als Dosiervolumen – kein Einspritzhub.'});
+  if(injPressure()>=pv('P402')) res.warn.push({msg:'Spritzdruckbegrenzung erreicht – Einspritzstrom wird nicht erreicht (Formteil evtl. unvollständig).'});
+  if(!pv('P521')) res.warn.push({msg:'Kühlwasser aus – Werkzeug überhitzt, Kühlzeit reicht nicht.'});
+  if(pv('P103')<200) res.warn.push({msg:'Schließkraft sehr gering – Gefahr der Gratbildung.'});
+  if(pv('P430')<1.5) res.warn.push({msg:'Restkühlzeit sehr kurz – Formteil verzieht sich.'});
+  if(cfg.tool.core && !pv('P622')) res.warn.push({msg:'Überwachung 1 deaktiviert – Ausdrehkern wird nicht überwacht.'});
+}
+function injPressure(){
+  const [mn,mx,opt]=MAT[pv('P502')];
+  const visc=Math.max(0.6,1+(opt-pv('P511'))/60);
+  return Math.round(350+pv('P401')*28*visc);
+}
+
+/* Seitenstruktur: Kachel -> Unterseiten -> Parameter */
+GLYPH.thermo=`<path d="M17 6a3 3 0 0 1 6 0v17a6 6 0 1 1-6 0z" fill="none"/><circle cx="20" cy="28" r="3" fill="currentColor"/><line x1="20" y1="12" x2="20" y2="26"/>`;
+GLYPH.mtemp=PLATES+`<path d="M18 10a2 2 0 0 1 4 0v14a4 4 0 1 1-4 0z" fill="none"/>`;
+GLYPH.flowp=`<rect x="3" y="8" width="8" height="8"/><rect x="16" y="8" width="8" height="8"/><rect x="29" y="8" width="8" height="8"/><rect x="16" y="24" width="8" height="8"/><path d="M11 12h5M24 12h5M14 12v16h2"/>`;
+GLYPH.actv=`<path d="M5 34V6M5 34h30" fill="none"/><path d="M8 28l7-9 6 5 9-14" fill="none"/>`;
+GLYPH.periph=DOOR+`<path d="M24 14l6 4-6 4" fill="none"/>`;
+const PAGESET = [
+  {id:'flow', n:'Ablauf', g:'flowp'},
+  {id:'mold', n:'Werkzeug', g:'mold_close', subs:[
+    {n:'Werkzeug schließen', g:'mold_close', p:['P101','P103']},
+    {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102']},
+    {n:'Werkzeug öffnen', g:'mold_open', p:['P111','P112']}]},
+  {id:'ej', n:'Auswerfer', g:'ej_fwd', subs:[
+    {n:'Auswerfer vor', g:'ej_fwd', p:['P201','P202','P206']},
+    {n:'Auswerfer zurück', g:'ej_back', p:['P203','P205']},
+    {n:'Rütteln', g:'ej_vib', p:['P204']}]},
+  {id:'noz', n:'Düse', g:'nozzle_fwd', subs:[
+    {n:'Düse', g:'nozzle_fwd', p:['P301','P302','P303']}]},
+  {id:'inj', n:'Einspritzen', g:'inject', subs:[
+    {n:'Einspritzen', g:'inject', p:['P401','P402']},
+    {n:'Umschaltung', g:'inject', p:['P403']},
+    {n:'Nachdruck', g:'hold', p:['P411','P412']}]},
+  {id:'dose', n:'Dosieren', g:'dose', subs:[
+    {n:'Auswahl Dosieren', g:'dose', p:['P420','P421']},
+    {n:'Dosieren', g:'dose', p:['P422','P423','P424']},
+    {n:'Dekompression', g:'decomp', p:['P425','P426']},
+    {n:'Kühlzeit', g:'cool', p:['P430']}]},
+  {id:'tcyl', n:'Temp. Zylinder', g:'thermo', subs:[
+    {n:'Zylinderheizung', g:'thermo', p:['P501','P502','P510','P511','P512','P513','P514','P515']}]},
+  {id:'tmold', n:'Temp. Werkzeug', g:'mtemp', subs:[
+    {n:'Werkzeugtemperierung', g:'mtemp', p:['P520','P521']}]},
+  {id:'peri', n:'Peripherie', g:'periph', subs:[
+    {n:'Schutztür', g:'door_open', p:['P601']},
+    {n:'Ventile', g:'blow_start', p:['P611']},
+    {n:'Überwachungseingänge', g:'mon1_start', p:['P622','P621']}]},
+  {id:'act', n:'Istwerte', g:'actv'},
+];
+let view='flow', subIdx=0, selP=null;
+const actLog=[];
+function fmtV(k){ const d=PDEF[k], v=pv(k); if(d.t==='bool') return v?'ja':'nein'; if(d.t==='sel') return v; return (+v).toLocaleString('de-DE',{maximumFractionDigits:2}); }
+function renderPages(){
+  $('pages1').innerHTML=PAGESET.map(p=>`<button class="pg ${view===p.id?'on':''}" data-pg="${p.id}" title="${p.n}">${glyphSVG(p.g,34)}<span>${p.n}</span></button>`).join('');
+  const P=PAGESET.find(p=>p.id===view);
+  const r2=$('pages2');
+  if(P && P.subs){ r2.style.display='flex'; r2.innerHTML=P.subs.map((s,i)=>`<button class="pg sub ${i===subIdx?'on':''}" data-sub="${i}" title="${s.n}">${glyphSVG(s.g,30)}<span>${s.n}</span></button>`).join(''); }
+  else r2.style.display='none';
+  const isFlow=view==='flow';
+  $('vFlow').style.display=isFlow?'':'none';
+  $('vParam').style.display=isFlow?'none':'';
+  ['bTasks','bEdit'].forEach(id=>$(id).style.display=isFlow?'':'none');
+  ['pF','pN','pY'].forEach(id=>$(id).style.display=isFlow?'none':'');
+  if(!isFlow) $('edit').classList.remove('open');
+  if(isFlow){ renderFlow(); return; }
+  if(view==='act'){ renderAct(); return; }
+  const S=P.subs[subIdx];
+  let h=`<div class="pgh">${S.n}</div><div class="plist">`;
+  S.p.forEach(k=>{ const d=PDEF[k];
+    h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
+  const used=new Set(S.p);
+  const affected=Object.keys(SYM).filter(t=>t!=='start'&&t!=='end'&&SCH.items.some(x=>x.t===t));
+  h+=`</div><div class="pcalc">Berechnete Zeiten im Ablauf: ${affected.map(t=>`<span class="pill">${SYM[t].s} ${dur(t).toFixed(2).replace('.',',')} s</span>`).join(' ')}</div>`;
+  $('vParam').innerHTML=h;
+  renderPInfo();
+}
+function renderPInfo(){
+  if(view==='flow') return;
+  if(!selP){ $('symInfo').innerHTML='Parameter antippen zum Bearbeiten'; return; }
+  const d=PDEF[selP];
+  const rng=d.t==='bool'?'[ nein / ja ]':d.t==='sel'?'[ '+d.opts.join(' / ')+' ]':`[ ${d.min} … ${d.max} ${d.u} ]`;
+  $('symInfo').innerHTML=`${d.n}<br><small>${selP} ${rng} = ${fmtV(selP)}</small>`;
+}
+function renderAct(){
+  let h=`<div class="pgh">Istwerte / Prozessprotokoll</div>
+  <div class="plist"><div class="prow"><span class="pn">Spritzdruck (berechnet)</span><b>${injPressure()} bar</b></div>
+  <div class="prow"><span class="pn">Massepolster (berechnet)</span><b>${Math.max(0,pv('P403')-pv('P411')/600*1.2).toFixed(2).replace('.',',')} cm³</b></div>
+  <div class="prow"><span class="pn">Zykluszeit Soll</span><b>${SCH.T.toFixed(2).replace('.',',')} s</b></div>
+  <div class="prow"><span class="pn">Gutteile gesamt</span><b>${sim.parts}</b></div></div>
+  <table class="cfg act"><tr><th>Zyklus</th><th>Zykluszeit</th><th>Dosierzeit</th><th>Spritzdruck</th><th>Massepolster</th><th>Formteil</th></tr>`;
+  actLog.slice(-15).reverse().forEach(a=>h+=`<tr><td>${a.n}</td><td>${a.T} s</td><td>${a.d} s</td><td>${a.p} bar</td><td>${a.c} cm³</td><td>${a.ok?'✔ ausgeworfen':'✘ nicht entformt'}</td></tr>`);
+  if(!actLog.length) h+=`<tr><td colspan="6">Noch keine Zyklen gefahren.</td></tr>`;
+  $('vParam').innerHTML=h+'</table>';
+  $('symInfo').textContent='Istwerte der letzten 15 Zyklen';
+}
+function logCycle(ok){
+  const f=v=>v.toFixed(2).replace('.',',');
+  actLog.push({n:sim.cycle,T:f(SCH.T),d:f(dur('dose')),p:injPressure(),c:f(Math.max(0,pv('P403')-pv('P411')/600*1.2)),ok});
+  if(view==='act') renderAct();
+}
+function setParam(k,val){
+  const d=PDEF[k];
+  if(d.t==='num'||!d.t){
+    val=parseFloat(String(val).replace(',','.'));
+    if(isNaN(val)){ toast('Ungültige Eingabe'); return false; }
+    if(val<d.min){ setAlarm('warn',`${k} Datenfehler, Wert kleiner als Minimum (${d.min})`); return false; }
+    if(val>d.max){ setAlarm('warn',`${k} Datenfehler, Wert größer als Maximum (${d.max})`); return false; }
+  }
+  cfg.p[k]=val;
+  if(k==='P502'){ const [mn,mx,o]=MAT[val]; ['P510','P511'].forEach(z=>cfg.p[z]=o); cfg.p.P512=o-5; cfg.p.P513=o-15; cfg.p.P514=o-30; toast(`Material ${val}: Temperaturen auf Richtwerte gesetzt (${mn}–${mx} °C)`); }
+  changed(); renderPages(); return true;
+}
+function editParam(k){
+  const d=PDEF[k]; selP=k;
+  if(d.t==='bool'){ setParam(k,!pv(k)); return; }
+  if(d.t==='sel'){ const i=d.opts.indexOf(pv(k)); setParam(k,d.opts[(i+1)%d.opts.length]); return; }
+  $('kTitle').textContent=d.n; $('kRange').textContent=`${k}  [ ${d.min} … ${d.max} ${d.u} ]`;
+  $('kIn').value=String(pv(k)).replace('.',','); openDlg('dKey'); setTimeout(()=>{$('kIn').focus();$('kIn').select();},30);
+}
+$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; renderPages(); if(view==='flow') renderAll(); });
+$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; renderPages(); });
+$('vParam').addEventListener('click',e=>{
+  const v=e.target.closest('.pval'); const r=e.target.closest('.prow[data-p]');
+  if(v){ editParam(v.dataset.p); return; }
+  if(r){ selP=r.dataset.p; renderPages(); }
+});
+$('pF').onclick=()=>{ if(selP) editParam(selP); else toast('Zuerst Parameter antippen'); };
+$('pN').onclick=()=>{ if(selP && PDEF[selP].t==='bool') setParam(selP,false); else { selP=null; renderPages(); } };
+$('pY').onclick=()=>{ if(!selP) return; if(PDEF[selP].t==='bool') setParam(selP,true); else editParam(selP); };
+$('kKeys').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k, inp=$('kIn');
+  if(k==='C') inp.value=''; else if(k==='<') inp.value=inp.value.slice(0,-1); else inp.value+=k; });
+$('kY').onclick=()=>{ if(setParam(selP,$('kIn').value)) closeDlg('dKey'); };
+$('kIn').addEventListener('keydown',e=>{ if(e.key==='Enter') $('kY').click(); });
+
+/* =====================================================================
+   PROZESSANSICHT – Schnitt durch das Werkzeug
+   ===================================================================== */
+function phaseName(t){
+  const act=SCH.items.filter(x=>t>=x.t0 && t<x.t1+0.02 && x.t!=='start'&&x.t!=='end').map(x=>SYM[x.t].n);
+  return act.length?act.join(' + '):(sim.running?'…':'Stillstand');
+}
+let procBox=0;
+function renderProcess(){
+  if(!$('dProc').classList.contains('open')) return;
+  const live=sim.running||sim.paused;
+  const S= live? replay(sim.start,SCH,sim.t) : sim.start;
+  const t=sim.t, tool=cfg.tool, P=S.part;
+  const open=(1-S.mold)*170;               // Öffnungsweg in px
+  const ejx=Math.max(0,S.ej+S.vibOff)*42;
+  const nozx=(1-S.noz)*50;
+  const PL=330;                             // Trennebene
+  let o=`<defs><clipPath id="fillClip"><rect x="${PL+60-60*Math.min(1,P.fill*1.15)}" y="0" width="200" height="400"/></clipPath>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8a949c" stroke-width="1"/></pattern></defs>`;
+  o+=`<rect x="0" y="0" width="760" height="400" fill="#f4f6f8"/>`;
+  // Feste Seite (Düsenseite)
+  o+=`<g><path d="M${PL} 60H500V340H${PL}V232H${PL+60}V88H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2" style="fill:#c5ccd2"/>
+      <path d="M${PL} 60H500V340H${PL}V232H${PL+60}V88H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2"/>
+      <rect x="500" y="40" width="30" height="320" fill="#53a08e" stroke="#2f6b5d"/>
+      <rect x="${PL+60}" y="156" width="${500-(PL+60)+30}" height="8" fill="#eee" stroke="#777"/>`;
+  // Kühlkanäle
+  const cw=S.cool?'#1e88e5':'#90caf9';
+  [[440,110],[440,290],[470,200]].forEach(([x,y])=>o+=`<circle cx="${x}" cy="${y}" r="9" fill="${cw}" stroke="#1565c0"/>`);
+  o+=`<text x="430" y="355" font-size="12" fill="#455">feste Seite (Düsenseite)</text></g>`;
+  // Bewegliche Seite mit Kern
+  o+=`<g transform="translate(${-open} 0)">
+      <path d="M${PL} 60H150V340H${PL}V220H${PL+48}V100H${PL}Z" fill="#c5ccd2" stroke="#59646d" stroke-width="2"/>
+      <path d="M${PL} 60H150V340H${PL}V220H${PL+48}V100H${PL}Z" fill="url(#hatch)"/>
+      <rect x="120" y="40" width="30" height="320" fill="#e0c13a" stroke="#8a7410"/>`;
+  [[200,110],[200,290],[250,200]].forEach(([x,y])=>o+=`<circle cx="${x}" cy="${y}" r="9" fill="${cw}" stroke="#1565c0"/>`);
+  if(tool.core) o+=`<g transform="translate(${PL+24} 160)"><rect x="-24" y="-8" width="48" height="16" fill="#3949ab" opacity=".85"/><text x="0" y="4" font-size="10" fill="#fff" text-anchor="middle">Kern ${S.core>0.5?'aus':'ein'}</text></g>`;
+  // Auswerferstifte
+  o+=`<g fill="#b3261e"><rect x="${70+ejx}" y="120" width="14" height="120"/><rect x="${84+ejx}" y="126" width="${PL+48-84-12}" height="6"/><rect x="${84+ejx}" y="228" width="${PL+48-84-12}" height="6"/></g>
+      <text x="160" y="355" font-size="12" fill="#455">bewegliche Seite (Auswerferseite)</text></g>`;
+  // Formteil
+  if(P.has){
+    let dx=0, dy=0, rot=0;
+    if(P.side!=='fixed') dx=-open+ejx;
+    if(P.fallAt!==null && live && t>=P.fallAt){ const f=Math.min(1,(t-P.fallAt)/0.7); dy=f*f*150; rot=f*80; dx+= -f*20; }
+    const hide = P.fallAt!==null && (!live || t>=P.fallAt+0.7);
+    if(!hide){
+      const col=partColor(P.temp);
+      const shape=`M${PL} 88H${PL+60}V232H${PL}V220H${PL+48}V100H${PL}Z`;
+      o+=`<g transform="translate(${dx} ${dy}) rotate(${rot} ${PL+30} 160)"><path d="${shape}" fill="${col}" stroke="#333" ${P.fill<1?'clip-path="url(#fillClip)"':''}/></g>`;
+      if(P.stuck && !(P.fallAt!==null && t>=P.fallAt)) o+=`<text x="${PL-60+dx}" y="80" font-size="12" fill="#b3261e">haftet!</text>`;
+    }
+  }
+  // Schmelze im Anguss
+  const injAct=SCH.items.some(x=>(x.t==='inject'||x.t==='hold')&&t>=x.t0&&t<x.t1);
+  if(injAct||S.noz>0.95&&P.has&&P.fill<1) o+=`<rect x="${PL+60}" y="157" width="${500-(PL+60)+30}" height="6" fill="#ff8a3d"/>`;
+  // Düse / Spritzeinheit
+  o+=`<g transform="translate(${nozx} 0)"><path d="M530 160l24-14h40v28h-40z" fill="#8d969e" stroke="#555"/>
+      <rect x="594" y="134" width="170" height="52" fill="#dfe3e6" stroke="#555"/>
+      <rect x="598" y="140" width="${30+Math.min(1.1,S.screw)*60}" height="40" fill="#ff8a3d" opacity=".9"/>
+      ${[0,1,2].map(i=>`<rect x="${612+i*48}" y="130" width="30" height="60" fill="#c0392b" opacity=".7"/>`).join('')}
+      ${S.drool&&S.noz<0.9?`<path d="M532 162q-4 16 0 30q5 -14 0 -30" fill="#ff8a3d" stroke="#c0392b"/>`:''}</g>`;
+  // Ausblasen
+  if(S.blow) o+=`<g stroke="#00897b" stroke-width="3" fill="none">${[110,160,210].map(y=>`<path d="M${PL+58} ${y}q-30 -10 -60 0"/>`).join('')}</g>`;
+  // Behälter + Teile
+  const n=Math.min(sim.parts,24);
+  o+=`<rect x="190" y="372" width="260" height="26" fill="#b9c2c9" stroke="#7d8790"/>`;
+  for(let i=0;i<n;i++) o+=`<rect x="${196+(i%12)*21}" y="${388-Math.floor(i/12)*9}" width="17" height="7" fill="#5c8fc7" stroke="#333" stroke-width=".5"/>`;
+  o+=`<text x="460" y="390" font-size="12" fill="#333">Teile: ${sim.parts}</text>`;
+  $('procSvg').innerHTML=o;
+  $('procPhase').textContent=phaseName(t);
+  $('procTime').textContent=(live?t:0).toFixed(2).replace('.',',')+' / '+SCH.T.toFixed(2).replace('.',',')+' s';
+  const temp=P.has?Math.round(lerp(pv('P520'),pv('P511'),P.temp)):'–';
+  $('procInfo').innerHTML=`Werkzeug: <b>${S.mold>0.99?'geschlossen':S.mold<0.01?'offen':'fährt'}</b> · Füllung: <b>${P.has?Math.round(P.fill*100):0} %</b> · Formteiltemp.: <b>${temp} °C</b> · Kühlung: <b>${S.cool?'aktiv':'–'}</b> · Düse: <b>${S.noz>0.95?'angelegt':'abgehoben'}</b>`;
+}
+$('sProc').onclick=()=>{ openDlg('dProc'); renderProcess(); };
+['pSingle','pAuto','pStop'].forEach(id=>$(id).onclick=()=>$({pSingle:'bSingle',pAuto:'bAuto',pStop:'bStop'}[id]).click());
+
 function toggleSec(btn,sec){ const s=$(sec); s.classList.toggle('show'); $(btn).classList.toggle('on',s.classList.contains('show')); if(sec==='secGantt') renderGantt(); }
 $('sMach').onclick=()=>toggleSec('sMach','secMach');
 $('sGantt').onclick=()=>toggleSec('sGantt','secGantt');
@@ -1297,7 +1637,7 @@ $('editClose').onclick=$('eOk').onclick=()=>{ $('edit').classList.remove('open')
 load();
 SCH=schedule(); PL=plausibility(SCH);
 setAlarm('ok','Grundstellung – bereit');
-renderAll();
+renderAll(); renderPages();
 requestAnimationFrame(tick);
 </script>
 </body>
