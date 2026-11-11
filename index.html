@@ -191,6 +191,7 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .qres.bad{background:#ffcdd2;color:#b71c1c}
 table.qt td{background:#fff}
 .qd{padding:5px 8px;border-bottom:1px solid #ccc;font-size:13px}
+#scSvg,#tpSvg{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -534,7 +535,7 @@ function load(){
   try{
     const s = JSON.parse(localStorage.getItem('sgmTrainer')||'null');
     if(!s) return;
-    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, p:{...PDEFV,...(s.cfg.p||{})}, prof:{...clone(PROFDEF),...(s.cfg.prof||{})}}; }
+    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, p:{...PDEFV,...(s.cfg.p||{})}, prof:{...clone(PROFDEF),...(s.cfg.prof||{})}, gp:{...clone(cfg.gp),...(s.cfg.gp||{})}}; }
     if(typeof s.dsl==='string') prog = parse(s.dsl);
     curTask = s.curTask||null; taskRes = s.taskRes||{};
   }catch(e){}
@@ -874,11 +875,13 @@ const sim={running:false,auto:false,t:0,cycle:0,parts:0,paused:false,waitDone:ne
 let lastFrame=performance.now();
 
 function changed(){
+  if(typeof gpSync==='function') gpSync();
   SCH=schedule(); PL=plausibility(SCH);
   if(sim.running){ stopSim(true); setAlarm('warn','Ablauf geändert – Simulation gestoppt.'); }
   save(); renderAll(); if(view!=='flow') renderPages();
 }
 function startSim(auto){
+  if(typeof tempOK==='function' && !tempOK()){ setAlarm('err','Kaltstartschutz: Zylindertemperatur außerhalb Toleranzband – Zyklusstart gesperrt'); return; }
   if(sim.alarm && sim.alarm.type==='err'){ toast('Bitte zuerst Alarm quittieren (Grundstellung).'); return; }
   if(SCH.T<=0){toast('Ablauf leer.');return;}
   sim.running=true; sim.auto=auto; sim.stopReq=false; sim.t=0; sim.paused=false; sim.waitDone=new Set();
@@ -936,7 +939,7 @@ function tick(now){
     }
   }
   if(sim.running || sim.paused) { renderMachine(); renderFlowState(); renderGanttCursor(); updateKPI(); renderProcess(); }
-  renderPreview(now);
+  renderPreview(now); tempStep(dt); screwPic(now); tempPic();
   requestAnimationFrame(tick);
 }
 
@@ -1233,7 +1236,7 @@ $('machBody').addEventListener('change',e=>{
   else if(el.id==='cType') cfg.machType=el.value;
   changed();
 });
-$('durReset').onclick=()=>{ cfg.p={...PDEFV}; cfg.prof=clone(PROFDEF); renderMach(); changed(); toast('Alle Parameter auf Standard'); };
+$('durReset').onclick=()=>{ cfg.p={...PDEFV}; cfg.prof=clone(PROFDEF); cfg.gp=clone(Object.fromEntries(Object.entries(GPDEF).map(([k,d])=>[k,d.st]))); renderMach(); changed(); toast('Alle Parameter auf Standard'); };
 
 // --- Aufgaben ---
 function norm(dsl,core){ return core? dsl.replace(/mon1_(start|end)/g,'mon1') : dsl; }
@@ -1355,7 +1358,7 @@ $('bImport').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   f.text().then(txt=>{
-    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},p:{...PDEFV,...(d.cfg.p||{})},prof:{...clone(PROFDEF),...(d.cfg.prof||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
+    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},p:{...PDEFV,...(d.cfg.p||{})},prof:{...clone(PROFDEF),...(d.cfg.prof||{})},gp:{...clone(cfg.gp),...(d.cfg.gp||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
     catch(err){ toast('Datei ungültig'); }
   });
   e.target.value='';
@@ -1608,10 +1611,10 @@ function dur(t){
   switch(t){
     case 'mold_close': return profTime('close');
     case 'mold_open':  return profTime('open');
-    case 'inject':     return Math.max(0.05,(pv('P422')-pv('P403'))/pv('P401'));
-    case 'hold':       return pv('P412');
+    case 'inject':     return injTime();
+    case 'hold':       return holdTime();
     case 'cool':       return pv('P430');
-    case 'dose':       return pv('P422')/(0.42*pv('P423')*Math.max(0.2,1-pv('P424')/600)) + (pv('P421')?0.5:0);
+    case 'dose':       return doseTime();
     case 'decomp':     return pv('P425')/pv('P426');
     case 'nozzle_fwd': case 'nozzle_back': return pv('P301')/pv('P302');
     case 'ej_fwd':     return profTime('ejF');
@@ -1668,16 +1671,17 @@ const PAGESET = [
   {id:'noz', n:'Düse', g:'nozzle_fwd', subs:[
     {n:'Düse', g:'nozzle_fwd', p:['P301','P302','P303']}]},
   {id:'inj', n:'Einspritzen', g:'inject', subs:[
-    {n:'Einspritzen', g:'inject', p:['P401','P402']},
-    {n:'Umschaltung', g:'inject', p:['P403']},
-    {n:'Nachdruck', g:'hold', p:['P411','P412']}]},
+    {n:'Einspritzen', g:'inject', gp:'inj'},
+    {n:'Umschaltung', g:'inject', p:['P440','P403','P441','P442'], prev:'screw'},
+    {n:'Nachdruck', g:'hold', gp:'hold'}]},
   {id:'dose', n:'Dosieren', g:'dose', subs:[
-    {n:'Auswahl Dosieren', g:'dose', p:['P420','P421']},
-    {n:'Dosieren', g:'dose', p:['P422','P423','P424']},
-    {n:'Dekompression', g:'decomp', p:['P425','P426']},
+    {n:'Auswahl Dosieren', g:'dose', p:['P420','P427']},
+    {n:'Dosieren', g:'dose', gp:'dose'},
+    {n:'Dekompression', g:'decomp', p:['P428','P425','P426'], prev:'screw'},
     {n:'Kühlzeit', g:'cool', p:['P430']}]},
   {id:'tcyl', n:'Temp. Zylinder', g:'thermo', subs:[
-    {n:'Zylinderheizung', g:'thermo', p:['P501','P502','P510','P511','P512','P513','P514','P515']}]},
+    {n:'Zylinderheizung', g:'thermo', p:['P501','P502','P516'], prev:'temp'},
+    {n:'Sollwerte Zonen', g:'thermo', p:['P510','P511','P512','P513','P514','P515'], prev:'temp'}]},
   {id:'tmold', n:'Temp. Werkzeug', g:'mtemp', subs:[
     {n:'Werkzeugtemperierung', g:'mtemp', p:['P520','P521']}]},
   {id:'peri', n:'Peripherie', g:'periph', subs:[
@@ -1720,12 +1724,14 @@ function quality(){
   const m=MATX[pv('P502')], [mn,mx,opt]=MAT[pv('P502')];
   const t=pv('P705'), shot=shotVol();
   const D=[]; const add=(sev,n,why,fix)=>D.push({sev,n,why,fix});
-  const melt=(pv('P511')+pv('P510'))/2;
+  const melt=((tIst.P511??pv('P511'))+(tIst.P510??pv('P510')))/2;
   const pNeed=injPressure()*(1+ (2-Math.min(2,t))*0.25);
   const pLim=pv('P402');
   // Füllung beim Einspritzen
   let inj=(pv('P422')-pv('P403'))/shot;
   if(pNeed>pLim) inj*=Math.max(0.5,pLim/pNeed);
+  if(pv('P440')==='Druck' && pv('P441')<pNeed*0.85) inj*=Math.max(0.4,pv('P441')/(pNeed*0.85));
+  if(pv('P440')==='Zeit'){ let t=0,s0=gpStart('inj'),vol=0; for(const x of cfg.gp.inj){ const d=Math.abs(s0-x.s), ts=d/x.v; if(t+ts<=pv('P442')){vol+=d;t+=ts;} else {vol+=(pv('P442')-t)*x.v; t=pv('P442'); break;} s0=x.s; } inj=Math.min(vol,pv('P422'))/shot; }
   // Nachdruck: Versiegelungszeit ~ Wanddicke²
   const tSeal=0.9*t*t+0.5;
   const holdEff=Math.min(1,pv('P411')/600)*Math.min(1,pv('P412')/tSeal)*(cushionVol()>0?1:0.2);
@@ -1745,6 +1751,9 @@ function quality(){
   if(!pv('P501')||melt<mn) add(3,'Kein Formteil','Kaltstartschutz – Massetemperatur unter Minimum.','Zylinderheizung einschalten, Temperaturen auf Richtwert.');
   if(fill<0.97) add(3,`Unvollständig gefüllt (Füllgrad ${Math.round(fill*100)} %)`, pNeed>pLim?'Spritzdruckbegrenzung erreicht.':(pv('P422')<shot?'Dosiervolumen kleiner als Schussvolumen.':'Zu wenig Volumen bis zum Umschaltpunkt.'),'Dosiervolumen erhöhen / Umschaltpunkt verkleinern / Spritzdruckbegrenzung erhöhen.');
   else if(holdEff<0.6) add(2,'Einfallstellen / Lunker',pv('P411')<300?'Nachdruck zu niedrig.':pv('P412')<tSeal?`Nachdruckzeit kürzer als Siegelzeit (~${tSeal.toFixed(1)} s).`:'Kein Massepolster – Nachdruck wirkt nicht.','Nachdruck und Nachdruckzeit erhöhen, Massepolster sicherstellen.');
+  if(pv('P413')>0.3 && fill>=0.97) add(2,'Einfallstellen (Druckeinbruch)',`Verzögerungszeit Nachdruck ${pv('P413')} s – Schmelze erstarrt ohne Druck.`,'Verzögerungszeit Nachdruck auf 0 – 0,1 s.');
+  if(pv('P440')==='Druck' && pv('P441')>pLim) add(1,'Umschaltdruck nie erreicht','Umschaltdruck über Spritzdruckbegrenzung.','Umschaltdruck senken oder über Volumen umschalten.');
+  if(cfg.gp.hold[0].p>pNeed*1.1 && cfg.gp.hold[0].p>900) add(1,'Druckspitze beim Umschalten','1. Nachdruckstufe höher als Einspritzdruck.','1. Nachdruckstufe absenken.');
   if(cushionVol()<=0 && fill>=0.97) add(2,'Kein Massepolster','Schnecke fährt auf Anschlag – Nachdruck kann nicht nachfördern.','Umschaltpunkt/Dosiervolumen erhöhen.');
   if(fill>1.025 || fNeed>pv('P103') || pv('P411')>1300) add(2,'Grat / Überspritzung', fNeed>pv('P103')?`Erforderliche Schließkraft ${fNeed} kN > eingestellt ${pv('P103')} kN.`:fill>1.025?'Zu viel Volumen eingespritzt (Umschaltpunkt zu spät).':'Nachdruck zu hoch.','Schließkraft erhöhen, Umschaltpunkt früher (größer), Nachdruck reduzieren.');
   if(pv('P411')>1100 && fill>=0.97) add(1,'Entformungsprobleme / Eigenspannungen','Überladung durch sehr hohen Nachdruck.','Nachdruck reduzieren.');
@@ -1822,7 +1831,7 @@ function profStateAt(k,t){
   return {frac:1,stage:k==='close'?'Zuhalten':null,v:0,pos:segs.length?segs.at(-1).to:0};
 }
 let pvT0=performance.now();
-function previewKind(){ if(view==='flow') return null; const P=PAGESET.find(p=>p.id===view); const S=P&&P.subs&&P.subs[subIdx]; return S?(S.prof||S.prev||null):null; }
+function previewKind(){ if(view==='flow') return null; const P=PAGESET.find(p=>p.id===view); const S=P&&P.subs&&P.subs[subIdx]; return S?(S.prof||(S.prev==='vib'?'vib':null)):null; }
 function renderPreview(now){
   const k=previewKind(); const el=$('pvSvg'); if(!k||!el) return;
   const t=(now-pvT0)/1000;
@@ -1843,8 +1852,8 @@ function renderPreview(now){
   }
   const mx=40+gap*90, ex=ej*34;
   let o=`<rect width="260" height="170" fill="#f4f6f8"/>
-   <rect x="200" y="20" width="16" height="120" fill="#53a08e" stroke="#2f6b5d"/>
-   <path d="M200 30H170V130H200V100H180V60H200Z" fill="#c5ccd2" stroke="#59646d"/>
+   ${(k==='close'||k==='open')?`<rect x="200" y="20" width="16" height="120" fill="#53a08e" stroke="#2f6b5d"/>
+   <path d="M200 30H170V130H200V100H180V60H200Z" fill="#c5ccd2" stroke="#59646d"/>`:''}
    <g transform="translate(${mx-130} 0)">
      <rect x="${100}" y="20" width="16" height="120" fill="#e0c13a" stroke="#8a7410"/>
      <path d="M116 30H160V60H${180-10}V100H160V130H116Z" fill="#c5ccd2" stroke="#59646d"/>
@@ -1854,6 +1863,233 @@ function renderPreview(now){
    <rect x="10" y="150" width="240" height="10" fill="#ddd" stroke="#999"/><rect x="10" y="150" width="${240*Math.min(1,vbar)}" height="10" fill="#2f73c9"/>
    <text x="10" y="146" font-size="10" fill="#333">Geschwindigkeit</text>`;
   el.innerHTML=o; $('pvTxt').textContent=txt;
+}
+
+/* =====================================================================
+   EINSPRITZ-, NACHDRUCK- UND DOSIERPROFILE (Stufen über Volumen / Zeit)
+   ===================================================================== */
+Object.assign(PDEF,{
+  P413:{n:'Verzögerungszeit Nachdruck',u:'s',v:0,min:0,max:5,st:0.05},
+  P427:{n:'Dosierverzögerungszeit',u:'s',v:0,min:0,max:30,st:0.1},
+  P428:{n:'Dekompression',t:'sel',v:'nach Dosieren',opts:['nach Dosieren','vor und nach Dosieren','aus']},
+  P440:{n:'Umschaltung auf Nachdruck über',t:'sel',v:'Volumen',opts:['Volumen','Druck','Zeit']},
+  P441:{n:'Umschaltdruck',u:'bar',v:900,min:50,max:2500,st:10},
+  P442:{n:'Umschaltzeit (max. Einspritzzeit)',u:'s',v:0.6,min:0.05,max:10,st:0.05},
+  P516:{n:'Toleranzband Temperatur',u:'± °C',v:10,min:2,max:50},
+});
+['P413','P427','P428','P440','P441','P442','P516'].forEach(k=>{PDEFV[k]=PDEF[k].v; if(cfg.p[k]===undefined) cfg.p[k]=PDEF[k].v;});
+const GPDEF = {
+  inj: {n:'Einspritzen', id:5, axis:'s', au:'cm³', rows:[
+         {k:'v',n:'Einspritzstrom',u:'cm³/s',min:1,max:120,c:'#1d4f8f'},
+         {k:'p',n:'Druckbegrenzung',u:'bar',min:100,max:2500,c:'#c62828'}],
+         st:[{v:15,p:1500,s:12},{v:25,p:1500,s:7.5},{v:12,p:1500,s:5.5}]},
+  hold:{n:'Nachdruck', id:6, axis:'t', au:'s', rows:[
+         {k:'p',n:'Nachdruck',u:'bar',min:0,max:2000,c:'#c62828'},
+         {k:'t',n:'Zeit',u:'s',min:0,max:30,c:'#333'}],
+         st:[{p:650,t:1.0},{p:550,t:0.6},{p:350,t:0.4}]},
+  dose:{n:'Dosieren', id:7, axis:'s', au:'cm³', rows:[
+         {k:'n',n:'Umfangsgeschwindigkeit',u:'m/min',min:1,max:40,c:'#1d4f8f'},
+         {k:'p',n:'Staudruck',u:'bar',min:0,max:300,c:'#c62828'}],
+         st:[{n:10,p:60,s:6},{n:16,p:80,s:13},{n:10,p:80,s:15}]},
+};
+cfg.gp = clone(Object.fromEntries(Object.entries(GPDEF).map(([k,d])=>[k,d.st])));
+const gpStart = k => k==='inj' ? pv('P422') + (pv('P428')!=='aus'?pv('P425'):0) : k==='dose' ? Math.max(0,cushionVolRaw()) : 0;
+function cushionVolRaw(){ return pv('P403') - (typeof shotVol==='function'?shotVol():10)*0.05*Math.min(1,(pv('P411')||600)/600); }
+function gpSync(){
+  const I=cfg.gp.inj, H=cfg.gp.hold, Dd=cfg.gp.dose;
+  I.at(-1).s=pv('P403'); Dd.at(-1).s=pv('P422');
+  // abgeleitete Kennwerte für Qualität/Zeiten
+  let t=0, s0=pv('P422'); I.forEach(x=>{ t+=Math.abs(s0-x.s)/x.v; s0=x.s; });
+  cfg.p.P401=+((pv('P422')-pv('P403'))/Math.max(0.01,t)).toFixed(2);
+  cfg.p.P402=Math.max(...I.map(x=>x.p));
+  const ht=H.reduce((a,x)=>a+x.t,0); cfg.p.P412=+ht.toFixed(2);
+  cfg.p.P411=Math.round(ht>0?H.reduce((a,x)=>a+x.p*x.t,0)/ht:0);
+  let ds=0,nn=0,pp=0,prev=gpStart('dose'); Dd.forEach(x=>{ const d=Math.max(0,x.s-prev); ds+=d; nn+=x.n*d; pp+=x.p*d; prev=x.s; });
+  if(ds>0){ cfg.p.P423=+(nn/ds).toFixed(1); cfg.p.P424=Math.round(pp/ds); }
+}
+function injTime(){ let t=0,s0=gpStart('inj'); cfg.gp.inj.forEach(x=>{ t+=Math.abs(s0-x.s)/x.v; s0=x.s; }); if(pv('P440')==='Zeit') t=Math.min(t,pv('P442')); return Math.max(0.05,t); }
+function doseTime(){ let t=pv('P427'),prev=gpStart('dose'); cfg.gp.dose.forEach(x=>{ t+=Math.max(0,x.s-prev)/(0.42*x.n*Math.max(0.2,1-x.p/600)); prev=x.s; }); return t; }
+function holdTime(){ return pv('P413')+cfg.gp.hold.reduce((a,x)=>a+x.t,0); }
+/* Bereich / Zugriff */
+function gpRange(k,i,row){
+  const D=GPDEF[k], st=cfg.gp[k];
+  if(row==='d') return {min:0,max:30,pmin:0,pmax:30,u:'s'};
+  const r=D.rows.find(x=>x.k===row);
+  if(r) return {min:r.min,max:r.max,pmin:r.min,pmax:r.max,u:r.u};
+  // Weg s
+  const prev=i===0?gpStart(k):st[i-1].s, next=i<st.length-1?st[i+1].s:null;
+  if(k==='inj') return {min:0,max:48,pmin: next===null?0:next, pmax:prev,u:'cm³'};
+  return {min:0,max:48,pmin:prev,pmax:next===null?48:next,u:'cm³'};
+}
+function gpId(k,i,row){ return `${row}${GPDEF[k].id}${String(i+1).padStart(2,'0')}`; }
+function gpGet(c){ return cfg.gp[c.k][c.i][c.row]; }
+function gpSet(c,val){
+  const r=gpRange(c.k,c.i,c.row), id=gpId(c.k,c.i,c.row);
+  if(val<r.min){ setAlarm('warn',`${id} Datenfehler, Wert kleiner als Minimum`); return false; }
+  if(val>r.max){ setAlarm('warn',`${id} Datenfehler, Wert größer als Maximum`); return false; }
+  if(c.row==='s' && (val<r.pmin-1e-9||val>r.pmax+1e-9)){ setAlarm('warn',`${id} Wert außerhalb des zulässigen Bereichs [${f2(r.pmin)} – ${f2(r.pmax)}]`); return false; }
+  cfg.gp[c.k][c.i][c.row]=val;
+  const last=c.i===cfg.gp[c.k].length-1;
+  if(c.row==='s' && last && c.k==='inj') cfg.p.P403=val;
+  if(c.row==='s' && last && c.k==='dose'){ cfg.p.P422=val; const I=cfg.gp.inj; if(I[0].s>val) I[0].s=+(val*0.8).toFixed(1); }
+  setAlarm('ok','Wert übernommen'); changed(); renderPages(); return true;
+}
+function gpStage(k,d){
+  const st=cfg.gp[k];
+  if(d>0){ if(st.length>=6){toast('Maximal 6 Stufen');return;}
+    const L=st.at(-1); if(k==='hold'){ st.push({p:L.p,t:0.3}); }
+    else { const prev=st.length>1?st.at(-2).s:gpStart(k); st.splice(st.length-1,0,{...L,s:+((prev+L.s)/2).toFixed(2)}); }
+  } else { if(st.length<=1){toast('Mindestens 1 Stufe');return;} k==='hold'?st.pop():st.splice(st.length-2,1); }
+  changed(); renderPages();
+}
+let gpSel=null;
+function editGPCell(c){
+  gpSel=c; renderPages(); const r=gpRange(c.k,c.i,c.row);
+  const cells=[]; cfg.gp[c.k].forEach((_,i)=>[...GPDEF[c.k].rows.map(x=>x.k),...(GPDEF[c.k].axis==='s'?['s']:[])].forEach(row=>cells.push({k:c.k,i,row})));
+  const idx=cells.findIndex(x=>x.i===c.i&&x.row===c.row);
+  openInput({id:gpId(c.k,c.i,c.row),label:GPDEF[c.k].n,u:r.u,min:f2(r.min),max:f2(r.max),pmin:f2(r.pmin),pmax:f2(r.pmax),value:gpGet(c),
+    ok:v=>gpSet(c,v), nav:d=>editGPCell(cells[(idx+d+cells.length)%cells.length])});
+}
+/* Diagramm: Stufen über Volumen (Einspritzen/Dosieren) bzw. über Zeit (Nachdruck) */
+function gpChart(k){
+  const D=GPDEF[k], st=cfg.gp[k], W=520,H=170,L=48,R=46,T=14,B=26;
+  const r1=D.rows[0], r2=D.rows[1];
+  let o=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-B-T}" fill="#f4f6f7" stroke="#888"/>`;
+  if(D.axis==='t'){
+    const Tt=holdTime()||1, pmax=Math.max(...st.map(x=>x.p),1)*1.15, X=t=>L+(W-L-R)*t/Tt, Y=p=>H-B-(H-B-T)*p/pmax;
+    let t=pv('P413');
+    if(t>0) o+=`<rect x="${L}" y="${T}" width="${X(t)-L}" height="${H-B-T}" fill="#eceff1"/><text x="${(L+X(t))/2}" y="${T+14}" font-size="10" text-anchor="middle" fill="#666">Verz.</text>`;
+    st.forEach((x,i)=>{ o+=`<rect x="${X(t)}" y="${Y(x.p)}" width="${X(t+x.t)-X(t)}" height="${H-B-Y(x.p)}" fill="#c62828" opacity=".75"/><text x="${(X(t)+X(t+x.t))/2}" y="${H-B-4}" font-size="10" fill="#fff" text-anchor="middle">${i+1}</text>`; t+=x.t; });
+    o+=`<text x="${L-4}" y="${T+10}" font-size="11" fill="#c62828" text-anchor="end">${Math.round(pmax)}</text><text x="${L-4}" y="${T+22}" font-size="10" fill="#c62828" text-anchor="end">bar</text>
+        <text x="${L}" y="${H-8}" font-size="11">0 s</text><text x="${W-R}" y="${H-8}" font-size="11" text-anchor="end">${f2(Tt)} s</text>`;
+  } else {
+    const s0=gpStart(k), s1=k==='inj'?st.at(-1).s:st.at(-1).s;
+    const smax=Math.ceil((pv('P422')+pv('P425'))*1.25), X=s=>L+(W-L-R)*(1-s/smax); // Schneckenvorraum: 0 links? -> wie am Zylinder: vorn rechts
+    const m1=Math.max(...st.map(x=>x[r1.k]))*1.15, m2=r2.max, Y1=v=>H-B-(H-B-T)*v/m1, Y2=v=>H-B-(H-B-T)*v/m2;
+    let prev=s0, fp='';
+    st.forEach((x,i)=>{ const x1=X(prev),x2=X(x.s); o+=`<rect x="${Math.min(x1,x2)}" y="${Y1(x[r1.k])}" width="${Math.abs(x2-x1)}" height="${H-B-Y1(x[r1.k])}" fill="${k==='dose'?'#f9a825':'#2f73c9'}" opacity=".85"/><text x="${(x1+x2)/2}" y="${H-B-4}" font-size="10" fill="#fff" text-anchor="middle">${i+1}</text>`;
+      fp+=`M${x1} ${Y2(x[r2.k])}H${x2}`; prev=x.s; });
+    o+=`<path d="${fp}" stroke="#c62828" stroke-width="2" fill="none"/>`;
+    const mark=(s,txt,c)=>o+=`<line x1="${X(s)}" y1="${T}" x2="${X(s)}" y2="${H-B}" stroke="${c}" stroke-dasharray="4 3"/><text x="${X(s)+3}" y="${T+11}" font-size="9" fill="${c}">${txt}</text>`;
+    mark(pv('P403'),'Umschaltp.','#2e7d32'); mark(pv('P422'),'Dosiervol.','#e65100');
+    o+=`<text x="${L-4}" y="${T+10}" font-size="11" fill="${r1.c}" text-anchor="end">${Math.round(m1)}</text><text x="${L-4}" y="${T+22}" font-size="9" fill="${r1.c}" text-anchor="end">${r1.u}</text>
+        <text x="${W-R+4}" y="${T+10}" font-size="11" fill="#c62828">${m2}</text><text x="${W-R+4}" y="${T+22}" font-size="9" fill="#c62828">${r2.u}</text>
+        <text x="${L}" y="${H-8}" font-size="11">${smax} cm³</text><text x="${W-R}" y="${H-8}" font-size="11" text-anchor="end">0 cm³</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" class="pchart">${o}</svg>`;
+}
+function renderGP(k){
+  const D=GPDEF[k], st=cfg.gp[k], n=st.length;
+  const cell=(i,row)=>{ const on=gpSel&&gpSel.k===k&&gpSel.i===i&&gpSel.row===row; const v=cfg.gp[k][i][row];
+    return `<button class="pc gpc ${on?'on':''}" data-gk="${k}" data-i="${i}" data-r="${row}">${row==='s'||row==='t'?f2(v):Math.round(v)}</button>`; };
+  const pbtn=pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`;
+  const rows=[...D.rows.map(r=>r.k), ...(D.axis==='s'?['s']:[])];
+  const idx=[...Array(n).keys()], ord = k==='dose'? idx : idx; // Stufen 1..n
+  let tab=`<div class="ptab" style="grid-template-columns:120px repeat(${n},1fr) 58px"><span></span>${ord.map(i=>`<span class="phd stg">${i+1} ▶</span>`).join('')}<span></span>`;
+  rows.forEach(row=>{ const r=D.rows.find(x=>x.k===row)||{n:k==='inj'?'Ende Stufe (Weg)':'Ende Stufe (Volumen)',u:'cm³',c:'#333'};
+    tab+=`<span class="rl" style="color:${r.c};font-size:13px;text-align:left">${r.n}</span>${ord.map(i=>cell(i,row)).join('')}<span class="pu">${r.u}</span>`; });
+  tab+='</div>';
+  const delay = k==='hold'?pbtn('P413'):k==='dose'?pbtn('P427'):'';
+  const side = k==='inj' ? `<div class="pgh2">Einspritzen – Kennwerte</div>${pbtn('P440')}${pbtn('P403')}
+      <div class="hint">Einspritzzeit: <b>${injTime().toFixed(2)} s</b><br>Mittlerer Einspritzstrom: <b>${pv('P401')} cm³/s</b><br>Benötigter Spritzdruck: <b>${injPressure()} bar</b> (Grenze ${pv('P402')} bar)</div>`
+    : k==='hold' ? `<div class="pgh2">Nachdruck – Kennwerte</div><div class="hint">Nachdruckzeit gesamt: <b>${holdTime().toFixed(2)} s</b><br>Mittlerer Nachdruck: <b>${pv('P411')} bar</b><br>Siegelzeit Anschnitt ≈ <b>${quality().tSeal.toFixed(1)} s</b><br>Massepolster: <b>${Math.max(0,cushionVol()).toFixed(2)} cm³</b></div>`
+    : `<div class="pgh2">Dosieren – Kennwerte</div><div class="hint">Dosierzeit: <b>${doseTime().toFixed(2)} s</b><br>Restkühlzeit: <b>${pv('P430').toFixed(1)} s</b> ${doseTime()>pv('P430')?'<span style="color:#c62828">→ Dosieren länger als Kühlzeit, Zyklus wird verlängert!</span>':'✔'}<br>Mittl. Umfangsgeschw.: <b>${pv('P423')} m/min</b> · Staudruck: <b>${pv('P424')} bar</b></div>`;
+  $('vParam').innerHTML=`<div class="pgh">${D.n}</div><div class="profwrap"><div class="profL">
+     ${delay?`<div style="max-width:420px;margin-left:auto">${delay}</div>`:''}
+     ${gpChart(k)}${tab}
+     <div class="prow2"><button class="dbtn" data-gstage="-1" data-gk="${k}">− Stufe</button><button class="dbtn" data-gstage="1" data-gk="${k}">+ Stufe</button></div>
+     <div class="pvbox" style="margin-top:8px"><div class="pgh2">Schnecke / Schneckenvorraum</div><svg id="scSvg" viewBox="0 0 620 212"></svg><div id="scTxt" class="hint"></div></div>
+   </div><div class="profR">${side}</div></div>`;
+  if(gpSel&&gpSel.k===k){ const r=gpRange(k,gpSel.i,gpSel.row); $('symInfo').innerHTML=`${(GPDEF[k].rows.find(x=>x.k===gpSel.row)||{n:'Ende Stufe'}).n} – Stufe ${gpSel.i+1}<br><small>${gpId(k,gpSel.i,gpSel.row)} [ ${f2(r.pmin)} - ${f2(r.pmax)} ] [ ${f2(r.min)} - ${f2(r.max)} ]</small>`; }
+  else $('symInfo').textContent='Wert antippen zum Bearbeiten';
+}
+/* Schneckenbild mit Markierungen, animiert über den Zyklus */
+function screwPic(now){
+  const el=$('scSvg'); if(!el) return;
+  const X=v=>110+ (48-Math.max(0,Math.min(48,v)))*0; // Platzhalter
+  const x0=80, x1=600, vs=(x1-x0-160)/Math.max(10,(pv('P422')+pv('P425'))*1.15);       // Vorraum links (Düse), Schnecke fährt nach rechts beim Dosieren
+  const px=v=>x0+30+v*vs;                        // Position Schneckenspitze bei Volumen v
+  const cush=Math.max(0,cushionVol()), U=pv('P403'), Dv=pv('P422'), Dk=pv('P428')!=='aus'?pv('P425'):0;
+  // Zyklus der Animation: Dosieren -> Dekomp -> Einspritzen -> Nachdruck
+  const tD=doseTime(), tK=pv('P428')!=='aus'?dur('decomp'):0, tI=injTime(), tH=holdTime(), T=tD+tK+tI+tH+0.8;
+  const t=((now-pvT0)/1000)%T; let v, ph, rot=0, info='';
+  if(t<tD){ const f=t/tD; v=cush+(Dv-cush)*f; ph='Dosieren'; rot=t*12;
+    let prev=gpStart('dose'),st=cfg.gp.dose.find(x=>{const ok=v<=x.s+1e-6; return ok;})||cfg.gp.dose.at(-1); info=`n = ${st.n} m/min · Staudruck ${st.p} bar`; }
+  else if(t<tD+tK){ v=Dv+Dk*(t-tD)/tK; ph='Dekompression'; info=`${pv('P425')} cm³`; }
+  else if(t<tD+tK+tI){ const f=(t-tD-tK)/tI; v=(Dv+Dk)-(Dv+Dk-U)*f; ph='Einspritzen'; const st=cfg.gp.inj.find(x=>v>=x.s-1e-6)||cfg.gp.inj.at(-1); info=`Q = ${st.v} cm³/s · p max ${st.p} bar`; }
+  else if(t<tD+tK+tI+tH){ const f=(t-tD-tK-tI)/tH; v=U-(U-cush)*f; ph='Nachdruck'; let tt=t-tD-tK-tI-pv('P413'); let st=null; for(const x of cfg.gp.hold){ if(tt<x.t){st=x;break;} tt-=x.t; } info= tt<0&&pv('P413')>0?'Verzögerung':`p = ${(st||cfg.gp.hold.at(-1)).p} bar`; }
+  else { v=cush; ph='Pause'; }
+  let o=`<rect width="620" height="212" fill="#fff"/>
+    <path d="M${x0} 70 l-40 20 l40 20z" fill="#9aa3ab" stroke="#555"/>
+    <rect x="${x0}" y="60" width="${x1-x0}" height="60" fill="#e8ebee" stroke="#555"/>
+    <rect x="${x0}" y="66" width="${px(v)-x0}" height="48" fill="#ff8a3d" opacity=".9"/>`;
+  // Schnecke
+  let d=`M${px(v)} 90`; for(let x=px(v),u=true;x<x1-4;x+=12,u=!u) d+=`L${Math.min(x1-4,x+6)} ${u?70:110}`;
+  o+=`<rect x="${px(v)}" y="84" width="${x1-px(v)}" height="12" fill="#546e7a"/><path d="${d}" fill="none" stroke="#263238" stroke-width="3" transform="translate(${-(rot%12)} 0)" clip-path="url(#scClip)"/>
+    <defs><clipPath id="scClip"><rect x="${px(v)}" y="60" width="${x1}" height="60"/></clipPath></defs>
+    <path d="M${x1-60} 60l-12 -40h44l-12 40z" fill="#f2f2f2" stroke="#666"/>`;
+  // Markierungen
+  const mk=(val,txt,c,y)=>o+=`<line x1="${px(val)}" y1="${y}" x2="${px(val)}" y2="128" stroke="${c}" stroke-width="2"/><text x="${px(val)+4}" y="${y-3}" font-size="10" fill="${c}">${txt} ${f2(val)}</text>`;
+  mk(cush,'Polster','#6a1b9a',158); mk(U,'Umschaltp.','#2e7d32',174); mk(Dv,'Dosiervol.','#e65100',190); if(Dk) mk(Dv+Dk,'Dekomp.','#00695c',206);
+  // Stufen-Balken
+  let prev=Dv+Dk; cfg.gp.inj.forEach((x,i)=>{ o+=`<rect x="${px(x.s)}" y="130" width="${px(prev)-px(x.s)}" height="6" fill="${['#1565c0','#42a5f5','#90caf9','#0d47a1','#64b5f6','#1e88e5'][i%6]}"/>`; prev=x.s; });
+  prev=cush; cfg.gp.dose.forEach((x,i)=>{ o+=`<rect x="${px(prev)}" y="138" width="${px(x.s)-px(prev)}" height="4" fill="${['#f9a825','#fbc02d','#ffe082'][i%3]}"/>`; prev=x.s; });
+  o+=`<text x="${x0}" y="24" font-size="13" font-weight="700" fill="#333">${ph}</text><text x="${x0}" y="42" font-size="11" fill="#555">${info}</text>
+      <text x="${x0+300}" y="24" font-size="12" fill="#333">Schneckenposition: ${f2(v)} cm³</text>`;
+  el.innerHTML=o; $('scTxt').innerHTML='blau = Einspritzstufen · gelb = Dosierstufen · Markierungen: Massepolster, Umschaltpunkt, Dosiervolumen, Dekompression';
+}
+
+/* =====================================================================
+   ZYLINDERTEMPERATUREN – Bild mit Soll/Ist, Heizbändern, Toleranz
+   ===================================================================== */
+const TZ=['P510','P511','P512','P513','P514','P515'];
+const tIst={}; TZ.forEach(z=>tIst[z]=null);
+function tempStep(dt){
+  const sp=+document.getElementById('speed').value;
+  TZ.forEach(z=>{ if(tIst[z]===null) tIst[z]=pv(z);
+    const target = z==='P515' ? pv(z) : (pv('P501')?pv(z):25);
+    tIst[z]+= (target-tIst[z])*(1-Math.exp(-dt*sp/18)); });
+}
+function tempOK(){ const tol=pv('P516'); return TZ.slice(0,5).every(z=>tIst[z]===null||tIst[z]>=pv(z)-tol); }
+function tCol(T){ const f=Math.max(0,Math.min(1,(T-25)/300)); const a=[70,130,200], b=[255,200,40], c=[220,40,30];
+  const m=f<0.6?a.map((x,i)=>x+(b[i]-x)*f/0.6):b.map((x,i)=>x+(c[i]-x)*(f-0.6)/0.4); return `rgb(${m.map(Math.round)})`; }
+function tempPic(){
+  const el=$('tpSvg'); if(!el) return;
+  const tol=pv('P516'), [mn,mx]=MAT[pv('P502')];
+  // Zonen von links (Düse) nach rechts (Einzug)
+  const Z=[{z:'P510',n:'Düse',x:40,w:60},{z:'P511',n:'Zone 4',x:120,w:90},{z:'P512',n:'Zone 3',x:220,w:90},{z:'P513',n:'Zone 2',x:320,w:90},{z:'P514',n:'Zone 1',x:420,w:90},{z:'P515',n:'Einzug',x:525,w:70}];
+  let o=`<rect width="640" height="290" fill="#fff"/>
+   <path d="M40 150 l-30 12 l30 12z" fill="#9aa3ab" stroke="#555"/>
+   <rect x="40" y="140" width="555" height="44" fill="#d9dde1" stroke="#555"/>
+   <rect x="40" y="152" width="555" height="20" fill="#cfd8dc"/>
+   <path d="M530 140l-14 -46h70l-14 46z" fill="#f2f2f2" stroke="#666"/><text x="551" y="112" font-size="10" text-anchor="middle">Trichter</text>
+   <rect x="595" y="128" width="40" height="68" fill="#53a08e" stroke="#2f6b5d"/><text x="615" y="214" font-size="9" text-anchor="middle">Antrieb</text>`;
+  Z.forEach(q=>{
+    const ist=tIst[q.z]??pv(q.z), soll=pv(q.z);
+    const heating= q.z!=='P515' && pv('P501') && ist<soll-0.5;
+    const okc = Math.abs(ist-soll)<=tol ? '#2e7d32' : ist<soll ? '#1565c0' : '#c62828';
+    if(q.z==='P515'){
+      o+=`<rect x="${q.x}" y="132" width="${q.w}" height="60" fill="#90caf9" stroke="#1565c0" opacity=".8"/><path d="M${q.x+10} 200 v20 M${q.x+q.w-10} 200 v20" stroke="#1565c0" stroke-width="4"/><text x="${q.x+q.w/2}" y="234" font-size="9" text-anchor="middle" fill="#1565c0">Kühlwasser</text>`;
+    } else {
+      o+=`<rect x="${q.x}" y="130" width="${q.w}" height="64" rx="3" fill="${tCol(ist)}" stroke="#7b1f1f"/>`;
+      for(let i=1;i<4;i++) o+=`<line x1="${q.x+i*q.w/4}" y1="130" x2="${q.x+i*q.w/4}" y2="194" stroke="#7b1f1f" opacity=".4"/>`;
+      if(heating) o+=`<rect x="${q.x-2}" y="128" width="${q.w+4}" height="68" rx="4" fill="none" stroke="#ff6f00" stroke-width="3" opacity="${0.5+0.5*Math.sin(performance.now()/200)}"/>`;
+      o+=`<line x1="${q.x+q.w/2}" y1="194" x2="${q.x+q.w/2}" y2="214" stroke="#333" stroke-width="2"/><circle cx="${q.x+q.w/2}" cy="216" r="3" fill="#333"/>`;
+    }
+    // Wertekasten
+    o+=`<g data-tz="${q.z}" style="cursor:pointer"><rect x="${q.x-4}" y="20" width="${q.w+8}" height="92" rx="3" fill="#eef1f3" stroke="#888"/>
+      <text x="${q.x+q.w/2}" y="36" font-size="12" font-weight="700" text-anchor="middle">${q.n}</text>
+      <text x="${q.x+2}" y="56" font-size="10" fill="#555">Soll</text><rect x="${q.x+2}" y="60" width="${q.w-4}" height="20" fill="#fff" stroke="#555"/><text x="${q.x+q.w-6}" y="75" font-size="13" font-weight="700" text-anchor="end">${Math.round(soll)}</text>
+      <text x="${q.x+2}" y="96" font-size="10" fill="#555">Ist</text><text x="${q.x+q.w-6}" y="104" font-size="13" font-weight="700" text-anchor="end" fill="${okc}">${ist.toFixed(0)}</text></g>`;
+    // Toleranzbalken
+    const bx=q.x+q.w/2, by=240, span=3*tol;
+    const pos=Math.max(-1,Math.min(1,(ist-soll)/span));
+    o+=`<rect x="${bx-30}" y="${by}" width="60" height="8" fill="#eceff1" stroke="#999"/><rect x="${bx-30*tol/span}" y="${by}" width="${60*tol/span}" height="8" fill="#a5d6a7"/><line x1="${bx+30*pos}" y1="${by-3}" x2="${bx+30*pos}" y2="${by+11}" stroke="${okc}" stroke-width="3"/>`;
+  });
+  const melt=((tIst.P510??pv('P510'))+(tIst.P511??pv('P511')))/2;
+  o+=`<text x="10" y="270" font-size="12">Material ${pv('P502')}: Verarbeitungsbereich ${mn} – ${mx} °C · Massetemperatur ≈ <b>${melt.toFixed(0)} °C</b> · Toleranzband ±${tol} °C · Heizung ${pv('P501')?'EIN':'AUS'}</text>
+      <text x="10" y="286" font-size="11" fill="${tempOK()?'#2e7d32':'#c62828'}">${tempOK()?'✔ Alle Zonen im Toleranzband – Zyklusstart freigegeben':'✘ Temperatur außerhalb Toleranz – Kaltstartschutz aktiv, Zyklusstart gesperrt'}</text>`;
+  el.innerHTML=o;
 }
 
 let view='flow', subIdx=0, selP=null;
@@ -1876,12 +2112,15 @@ function renderPages(){
   const S=P.subs[subIdx];
   if(S.prof){ renderProfile(S.prof); return; }
   if(S.q){ renderQuality(); return; }
+  if(S.gp){ renderGP(S.gp); return; }
   let h=`<div class="pgh">${S.n}</div><div class="plist">`;
   S.p.forEach(k=>{ const d=PDEF[k];
     h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
   const used=new Set(S.p);
   const affected=Object.keys(SYM).filter(t=>t!=='start'&&t!=='end'&&SCH.items.some(x=>x.t===t));
-  if(S.prev) h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
+  if(S.prev==='vib') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
+  if(S.prev==='screw') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Schnecke / Schneckenvorraum</div><svg id="scSvg" viewBox="0 0 620 212"></svg><div id="scTxt" class="hint"></div>`;
+  if(S.prev==='temp') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Plastifizierzylinder – Temperaturzonen (Soll antippen zum Ändern)</div><svg id="tpSvg" viewBox="0 0 640 290"></svg>`;
   if(pv('P701')&&view==='part') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Formteil</div>${partPic(quality())}<div class="hint">Volumen je Teil: <b>${partVol().toFixed(2).replace('.',',')} cm³</b> · Schussvolumen: <b>${shotVol().toFixed(2).replace('.',',')} cm³</b> · Gewicht: <b>${quality().weight.toFixed(2).replace('.',',')} g</b> (${pv('P502')})</div>`;
   h+=`</div><div class="pcalc">Berechnete Zeiten im Ablauf: ${affected.map(t=>`<span class="pill">${SYM[t].s} ${dur(t).toFixed(2).replace('.',',')} s</span>`).join(' ')}</div>`;
   $('vParam').innerHTML=h;
@@ -1921,6 +2160,7 @@ function setParam(k,val){
     if(val>d.max){ setAlarm('warn',`${k} Datenfehler, Wert größer als Maximum (${d.max})`); return false; }
   }
   cfg.p[k]=val;
+  if(k==='P403'){ const I=cfg.gp.inj; if(I.length>1 && I.at(-2).s<=val){ toast('Umschaltpunkt muss kleiner als Ende der vorletzten Einspritzstufe sein'); } }
   if(k==='P502'){ const [mn,mx,o]=MAT[val]; ['P510','P511'].forEach(z=>cfg.p[z]=o); cfg.p.P512=o-5; cfg.p.P513=o-15; cfg.p.P514=o-30; toast(`Material ${val}: Temperaturen auf Richtwerte gesetzt (${mn}–${mx} °C)`); }
   changed(); renderPages(); return true;
 }
@@ -1931,9 +2171,12 @@ function editParam(k){
   const ks=Object.keys(PDEF).filter(x=>!PDEF[x].t);
   openInput({id:k,label:d.n,u:d.u,min:d.min,max:d.max,pmin:d.min,pmax:d.max,value:pv(k),ok:v=>setParam(k,v),nav:dd=>{ const P=PAGESET.find(p=>p.id===view); const list=(P&&P.subs&&P.subs[subIdx].p||[]).filter(x=>!PDEF[x].t); if(!list.length) return; const i=list.indexOf(k); editParam(list[(i+dd+list.length)%list.length]); }});
 }
-$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
-$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); });
+$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; gpSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
+$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; gpSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); });
 $('vParam').addEventListener('click',e=>{
+  const tz=e.target.closest('[data-tz]'); if(tz){ editParam(tz.dataset.tz); return; }
+  const gc=e.target.closest('.gpc'); if(gc){ editGPCell({k:gc.dataset.gk,i:+gc.dataset.i,row:gc.dataset.r}); return; }
+  const gs=e.target.closest('[data-gstage]'); if(gs){ gpStage(gs.dataset.gk,+gs.dataset.gstage); return; }
   const pc=e.target.closest('.pc:not(.ro)'); if(pc){ editProfCell({k:pc.dataset.k,i:+pc.dataset.i,row:pc.dataset.r}); return; }
   const sb=e.target.closest('[data-stage]'); if(sb){ const P=PAGESET.find(p=>p.id===view); stageAdd(P.subs[subIdx].prof,+sb.dataset.stage); return; }
   const v=e.target.closest('.pval'); const r=e.target.closest('.prow[data-p]');
@@ -2043,8 +2286,10 @@ $('editClose').onclick=$('eOk').onclick=()=>{ $('edit').classList.remove('open')
 
 /* Start */
 load();
+gpSync();
 SCH=schedule(); PL=plausibility(SCH);
 setAlarm('ok','Grundstellung – bereit');
+TZ.forEach(z=>tIst[z]=pv(z));
 renderAll(); renderPages();
 requestAnimationFrame(tick);
 </script>
