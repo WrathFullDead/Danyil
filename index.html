@@ -27,8 +27,8 @@ button{font:inherit;cursor:pointer}
 .logo{grid-row:span 2;align-self:start;background:#7a828a;color:#e8f5e9;font-weight:800;font-style:italic;letter-spacing:1px;padding:6px 10px;border-radius:2px;font-size:15px;text-align:center;line-height:1.1}
 .logo small{display:block;font-weight:400;font-style:normal;font-size:10px;letter-spacing:0;color:#cfd8dc}
 #vals{display:flex;gap:3px;background:#7a828a;padding:2px;border-radius:2px;color:#fff;font-size:14px;align-items:center;flex-wrap:wrap}
-#vals .v{display:flex;align-items:center;gap:6px;background:#6c747c;padding:2px 8px;border-radius:2px;flex:1;justify-content:space-between;min-width:110px}
-#vals b{font-size:16px}
+#vals .v{display:flex;align-items:center;gap:5px;background:#6c747c;padding:2px 6px;border-radius:2px;flex:1;justify-content:space-between;min-width:0;white-space:nowrap;font-size:12px}
+#vals b{font-size:14px}
 #vals .sb{background:#e3e6e9;color:#222;border:1px solid #444;border-radius:2px;height:28px;padding:0 8px;font-size:13px}
 #vals .sb:disabled{opacity:.45}
 #vals .sb.blink{animation:blink 1s infinite}
@@ -194,6 +194,28 @@ table.qt td{background:#fff}
 #scSvg,#tpSvg{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
 .istc{color:#2e7d32!important;border-color:#2e7d32!important;font-weight:700}
 .rl.ist{color:#2e7d32}
+#grpSw{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+#grpSw button{width:66px;height:22px;border:1px solid #444;border-radius:2px}
+#grpSw .g1{background:#b9bec2}#grpSw .g2{background:#f2c230}#grpSw .g3{background:#2fae5a}
+#grpSw button.on{outline:3px solid #fff;outline-offset:-3px}
+.pgh.ylw{background:#f2c230}.pgh.grn{background:#2fae5a}
+.pval.bad{background:#ef9a9a!important;color:#b71c1c}
+table.mon{background:#fff;margin:6px 0}
+table.mon th{background:#a9afb4;text-align:left;padding:4px 6px}
+table.mon td{vertical-align:middle}
+table.mon tr.qd td{color:#888}
+.pval.sm{height:32px;font-size:14px;min-width:70px}
+.pval.wide{min-width:200px}
+.pval.tolf{background:#fff59d}
+td.istv{color:#2e7d32;font-weight:700}
+.dbtn.sm{padding:4px 8px;font-size:12px}
+.iogrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.io{display:flex;align-items:center;gap:8px;padding:4px 6px;border-bottom:1px solid #ddd;font-size:13px;background:#fff}
+.io .lamp{width:16px;height:16px;border-radius:50%;background:#9e9e9e;border:1px solid #555;flex-shrink:0}
+.io.on.o .lamp{background:#ff9800;box-shadow:0 0 8px #ff9800}
+.io.on.i .lamp{background:#43a047;box-shadow:0 0 8px #43a047}
+#alarm{cursor:pointer}
+@media (max-width:800px){.iogrid{grid-template-columns:1fr}}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -223,6 +245,9 @@ table.qt td{background:#fff}
       <button class="sb" id="bStop" title="Stopp">■ Stopp</button>
       <button class="sb" id="bNext" title="Nach Zwischenstopp weiter" disabled>⏵ Weiter</button>
       <select id="speed" title="Simulationsgeschwindigkeit"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+      <span class="v" title="Schneckenposition">⇤ <b id="kScrew">0,000 cm³</b></span>
+      <span class="v" title="Massepolster">▕ <b id="kCush">0,000 cm³</b></span>
+      <span class="v" title="Druck">p <b id="kPres">0 bar</b></span>
       <span class="v" title="Zykluszeit (berechnet)">Zyklus <b id="kCycle">0,00 s</b></span>
       <span class="v" title="Ist-Zeit">Ist <b id="kIst">0,00 s</b></span>
       <span class="v" title="Gutteile">Teile <b id="kParts">0</b></span>
@@ -271,6 +296,7 @@ table.qt td{background:#fff}
     </div>
 
     <div id="side">
+      <div id="grpSw" title="Bildgruppe wählen"><button data-grp="proc" class="g1" title="Prozess"></button><button data-grp="qual" class="g2" title="Qualität / Überwachung"></button><button data-grp="sys" class="g3" title="System"></button></div>
       <button class="sd" id="sProc" title="Prozessansicht: Werkzeug im Schnitt">◫<small>Prozess</small></button>
       <button class="sd" id="sMach" title="Maschinenansicht ein/aus">▣<small>Maschine</small></button>
       <button class="sd" id="sGantt" title="Zeitdiagramm ein/aus">▤<small>Zeiten</small></button>
@@ -373,6 +399,12 @@ table.qt td{background:#fff}
     <div class="hint" id="procInfo"></div>
   </div>
   <div class="df"><button class="dbtn" id="pSingle">▽ 1 Zyklus</button><button class="dbtn" id="pAuto">⟳ Automatik</button><button class="dbtn" id="pStop">■ Stopp</button><button class="dbtn pri" data-close>Schließen</button></div>
+</div></div>
+
+<div class="dlg" id="dText"><div class="dbox" style="width:min(400px,94vw)">
+  <div class="dh"><span id="tTitle">Eingabe</span><button data-close>×</button></div>
+  <div class="db"><input id="tIn" maxlength="32" style="width:100%;font-size:20px;padding:6px"></div>
+  <div class="df"><button class="dbtn" data-close>Abbrechen</button><button class="dbtn pri" id="tOk">OK</button></div>
 </div></div>
 
 <div id="toast"></div>
@@ -589,17 +621,20 @@ function place(it, targetId, mode){
   }
 }
 function opInsert(t, mode){
+  if(!canEditAblauf()) return;
   const err=canPlace(sel,mode); if(err){toast(err);return;}
   pushUndo();
   const it=mk(t); place(it, sel, mode); sel=it.id;
   changed();
 }
 function opDelete(){
+  if(!canEditAblauf()) return;
   const r=find(sel); if(!r){toast('Bitte zuerst ein Symbol markieren.');return;}
   if(isFixed(r)){toast('Start und Ende können nicht gelöscht werden.');return;}
   pushUndo(); removeItem(sel); sel=null; changed();
 }
 function opMove(targetId, mode){
+  if(!canEditAblauf()) return;
   if(targetId===moveSrc){toast('Ziel = Quelle.');return;}
   const err=canPlace(targetId,mode); if(err){toast(err);return;}
   const snap=toDSL(prog);
@@ -611,6 +646,7 @@ function opMove(targetId, mode){
   place(it,targetId,mode); sel=it.id; moveSrc=null; changed();
 }
 function opCond(){
+  if(!canEditAblauf()) return;
   const r=find(sel); if(!r){toast('Bitte zuerst ein Symbol markieren.');return;}
   if(isFixed(r)){toast('Start/Ende haben keine Startbedingung.');return;}
   pushUndo();
@@ -637,6 +673,7 @@ function opCond(){
   changed();
 }
 function opBranch(dir){
+  if(!canEditAblauf()) return;
   const r=find(sel); if(!r){toast('Symbol eines Schritts mit Parallelzweig markieren.');return;}
   const col=prog.cols[r.c];
   if(isFixed(r)){toast('Nicht für Start/Ende.');return;}
@@ -652,6 +689,7 @@ function opBranch(dir){
   changed();
 }
 function opBase(){
+  if(!canEditAblauf()) return;
   ask('Grundablauf laden? Der aktuelle Ablauf wird ersetzt.',()=>{ pushUndo(); prog=parse(GRUND); sel=null; changed(); });
 }
 function opUndo(){
@@ -876,13 +914,16 @@ let SCH={items:[],T:0,notes:[]}, PL={err:[{},{}],warn:[],info:[]};
 const sim={running:false,auto:false,t:0,cycle:0,parts:0,paused:false,waitDone:new Set(),start:contStart(),alarm:null,stopReq:false,lastIst:0,cycStartWall:0};
 let lastFrame=performance.now();
 
+let lastDsl=null;
 function changed(){
   if(typeof gpSync==='function') gpSync();
+  { const d=toDSL(prog); if(lastDsl!==null && d!==lastDsl) protLog('ABL','Produktionsablauf',lastDsl.split(';').length+' Schritte',d.split(';').length+' Schritte'); lastDsl=d; }
   SCH=schedule(); PL=plausibility(SCH);
   if(sim.running){ stopSim(true); setAlarm('warn','Ablauf geändert – Simulation gestoppt.'); }
   save(); renderAll(); if(view!=='flow') renderPages();
 }
 function startSim(auto){
+  if(pv('P518')!==5){ setAlarm('err',`P518 Datenfehler, Wert ${pv('P518')<5?'kleiner':'größer'} als Ausrüstung: Anzahl Heizzonen Zylinder = ${pv('P518')} (erforderlich 5)`,'P518'); return; }
   if(typeof tempOK==='function' && !tempOK()){ setAlarm('err','Kaltstartschutz: Zylindertemperatur außerhalb Toleranzband – Zyklusstart gesperrt'); return; }
   if(sim.alarm && sim.alarm.type==='err'){ toast('Bitte zuerst Alarm quittieren (Grundstellung).'); return; }
   if(SCH.T<=0){toast('Ablauf leer.');return;}
@@ -918,6 +959,7 @@ function tick(now){
       if(x.t0>=sim.t-1e-9 && x.t0<=nt && errMap[x.id]){
         sim.t=x.t0; sim.running=false; sim.alarmId=x.id;
         sim.start=replay(sim.start,SCH,sim.t);
+        if(pv('P304')){ sim.start.noz=0; toast('Düse bei Alarm abgehoben'); }
         setAlarm('err', errMap[x.id]+'  ['+SYM[x.t].n+']'); updateButtons(); renderAll(); requestAnimationFrame(tick); return;
       }
     }
@@ -933,7 +975,11 @@ function tick(now){
     if(sim.t>=SCH.T){
       const end=replay(sim.start,SCH,SCH.T);
       if(end.part.fallAt!==null) sim.parts++;
-      logCycle(end.part.fallAt!==null);
+      const fmStop=cycleEval();
+      const okPart=end.part.fallAt!==null && !qmBad.length && quality().ok;
+      if(end.part.fallAt!==null){ okPart?sim.good++:sim.bad++; }
+      logCycle(okPart);
+      if(fmStop){ setAlarm(fmStop.imm?'err':'warn',fmStop.txt,fmStop.ref); sim.stopReq=true; }
       finishPart(end); sim.start=end; sim.cycle++;
       sim.lastIst=(performance.now()-sim.cycStartWall)/1000*(+document.getElementById('speed').value);
       if(sim.auto && !sim.stopReq){ sim.t=0; sim.waitDone=new Set(); sim.cycStartWall=performance.now(); }
@@ -941,7 +987,7 @@ function tick(now){
     }
   }
   if(sim.running || sim.paused) { renderMachine(); renderFlowState(); renderGanttCursor(); updateKPI(); renderProcess(); }
-  renderPreview(now); tempStep(dt); screwPic(now); tempPic();
+  renderPreview(now); tempStep(dt); screwPic(now); tempPic(); if(view==='io') ioPic();
   requestAnimationFrame(tick);
 }
 
@@ -1149,10 +1195,12 @@ function updateKPI(){
   const f=v=>v.toFixed(2).replace('.',',')+' s';
   document.getElementById('kCycle').textContent=f(SCH.T);
   document.getElementById('kIst').textContent=f(sim.running?sim.t:sim.lastIst);
-  document.getElementById('kParts').textContent=sim.parts;
+  document.getElementById('kParts').textContent=sim.parts+(sim.bad?` (${sim.bad} ✘)`:'');
+  if(typeof liveVals==='function'){ const L=liveVals(); $('kScrew').textContent=L.pos.toFixed(3).replace('.',',')+' cm³'; $('kCush').textContent=L.cush.toFixed(3).replace('.',',')+' cm³'; $('kPres').textContent=Math.round(L.p)+' bar'; }
 }
-function setAlarm(type,txt){
-  sim.alarm={type,txt};
+function setAlarm(type,txt,ref){
+  sim.alarm={type,txt,ref:ref||null};
+  if(type!=='ok' && typeof msgLog==='function') msgLog(type,txt,ref);
   const a=document.getElementById('alarm'); a.className=type;
   a.querySelector('.tri').textContent= type==='ok'?'ⓘ':'⚠';
   document.getElementById('alarmTxt').textContent=txt;
@@ -1500,11 +1548,13 @@ function fieldId(k,i,row){ return `${row==='d'?'t':row}${PROFDEF[k].id}${String(
 function cellsOf(k){ const f=[{k,i:0,row:'d'}]; cfg.prof[k].st.forEach((_,i)=>['v','F','s'].forEach(r=>f.push({k,i,row:r}))); return f; }
 function getCell(c){ const P=cfg.prof[c.k]; return c.row==='d'?P.delay:P.st[c.i][c.row]; }
 function setCell(c,val){
-  const r=rangeOf(c.k,c.i,c.row);
+  if(!canEdit('PROF')) return false;
+  const r=rangeOf(c.k,c.i,c.row), old=getCell(c);
   if(val<r.min){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Datenfehler, Wert kleiner als Minimum`); return false; }
   if(val>r.max){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Datenfehler, Wert größer als Maximum`); return false; }
   if(c.row==='s' && (val<r.pmin-1e-9 || val>r.pmax+1e-9)){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Wert außerhalb des zulässigen Bereichs [${r.pmin} – ${r.pmax}]`); return false; }
   if(c.row==='d') cfg.prof[c.k].delay=val; else cfg.prof[c.k].st[c.i][c.row]=val;
+  protLog(fieldId(c.k,c.i,c.row),PROFDEF[c.k].n,old,val);
   if(c.k==='open' && c.row==='s' && c.i===cfg.prof.open.st.length-1){ // Öffnungsweg geändert -> Schließprofil anpassen
     const cs=cfg.prof.close.st; if(cs[0].s>=val) cs[0].s=Math.round(val*0.6);
   }
@@ -1639,7 +1689,8 @@ function dur(t){
     case 'cool':       return pv('P430');
     case 'dose':       return doseTime();
     case 'decomp':     return pv('P425')/pv('P426');
-    case 'nozzle_fwd': case 'nozzle_back': return pv('P301')/pv('P302');
+    case 'nozzle_fwd': return pv('P301')/pv('P302')+pv('P305');
+    case 'nozzle_back': return pv('P301')/pv('P302');
     case 'ej_fwd':     return profTime('ejF');
     case 'ej_back':    return profTime('ejB');
     case 'ej_stop':    return Math.max(0.05,(cfg.prof.ejB.delay||0)+travelTime('ejB',STROKE.ejB(),pv('P205')));
@@ -1680,19 +1731,28 @@ GLYPH.mtemp=PLATES+`<path d="M18 10a2 2 0 0 1 4 0v14a4 4 0 1 1-4 0z" fill="none"
 GLYPH.flowp=`<rect x="3" y="8" width="8" height="8"/><rect x="16" y="8" width="8" height="8"/><rect x="29" y="8" width="8" height="8"/><rect x="16" y="24" width="8" height="8"/><path d="M11 12h5M24 12h5M14 12v16h2"/>`;
 GLYPH.actv=`<path d="M5 34V6M5 34h30" fill="none"/><path d="M8 28l7-9 6 5 9-14" fill="none"/>`;
 GLYPH.part=`<path d="M8 10h24v22h-4V14H12v18H8z" fill="none"/><path d="M20 4v6"/>`;
+GLYPH.prot=`<rect x="8" y="5" width="24" height="30" fill="none"/><path d="M12 12h16M12 18h16M12 24h10"/>`;
+GLYPH.progp=`<rect x="5" y="8" width="13" height="24" fill="none"/><rect x="22" y="8" width="13" height="24" fill="none"/><text x="11.5" y="25" font-size="10" text-anchor="middle" stroke="none" fill="currentColor">I</text><text x="28.5" y="25" font-size="10" text-anchor="middle" stroke="none" fill="currentColor">V</text>`;
+GLYPH.userp=`<circle cx="20" cy="13" r="6" fill="none"/><path d="M8 34q12-16 24 0" fill="none"/>`;
+GLYPH.msgp=`<path d="M20 5L36 33H4z" fill="none"/><path d="M20 15v9M20 28v1"/>`;
+GLYPH.wartp=`<path d="M10 30l12-12M24 8a6 6 0 1 0 8 8l-4-1-2-2-1-4z" fill="none"/>`;
+GLYPH.iop=`<circle cx="12" cy="13" r="4" fill="none"/><circle cx="28" cy="13" r="4" fill="currentColor"/><circle cx="12" cy="28" r="4" fill="currentColor"/><circle cx="28" cy="28" r="4" fill="none"/>`;
+GLYPH.setp=`<circle cx="20" cy="20" r="6" fill="none"/><path d="M20 4v6M20 30v6M4 20h6M30 20h6M9 9l4 4M27 27l4 4M31 9l-4 4M13 27l-4 4"/>`;
 GLYPH.periph=DOOR+`<path d="M24 14l6 4-6 4" fill="none"/>`;
 const PAGESET = [
   {id:'flow', n:'Ablauf', g:'flowp'},
   {id:'mold', n:'Werkzeug', g:'mold_close', subs:[
     {n:'Werkzeug schließen', g:'mold_close', prof:'close'},
     {n:'Werkzeug öffnen', g:'mold_open', prof:'open'},
-    {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102','P103','P105']}]},
+    {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102','P103','P105']},
+    {n:'Kenngrößen Werkzeug', g:'mold_open', p:['P130','P131','P706'], fn:'tool'}]},
   {id:'ej', n:'Auswerfer', g:'ej_fwd', subs:[
     {n:'Auswerfer vor', g:'ej_fwd', prof:'ejF'},
     {n:'Auswerfer zurück', g:'ej_back', prof:'ejB'},
     {n:'Rütteln', g:'ej_vib', p:['P204'], prev:'vib'}]},
   {id:'noz', n:'Düse', g:'nozzle_fwd', subs:[
-    {n:'Düse', g:'nozzle_fwd', p:['P301','P302','P303']}]},
+    {n:'Auswahl Düse', g:'nozzle_fwd', p:['P304']},
+    {n:'Düse vor / zurück', g:'nozzle_fwd', p:['P305','P301','P302','P303']}]},
   {id:'inj', n:'Einspritzen', g:'inject', subs:[
     {n:'Einspritzen', g:'inject', gp:'inj'},
     {n:'Umschaltung', g:'inject', p:['P440','P403','P441','P442'], prev:'screw'},
@@ -1704,7 +1764,7 @@ const PAGESET = [
     {n:'Dekompression', g:'decomp', p:['P428','P425','P426'], prev:'screw'},
     {n:'Kühlzeit', g:'cool', p:['P430']}]},
   {id:'tcyl', n:'Temp. Zylinder', g:'thermo', subs:[
-    {n:'Zylinderheizung', g:'thermo', p:['P501','P502','P516'], prev:'temp'},
+    {n:'Auswahl Temperierung', g:'thermo', p:['P518','P501','P502','P516'], prev:'temp'},
     {n:'Sollwerte Zonen', g:'thermo', p:['P510','P511','P512','P513','P514','P515'], prev:'temp'}]},
   {id:'tmold', n:'Temp. Werkzeug', g:'mtemp', subs:[
     {n:'Werkzeugtemperierung', g:'mtemp', p:['P520','P521']}]},
@@ -1715,8 +1775,19 @@ const PAGESET = [
   {id:'part', n:'Formteil', g:'part', subs:[
     {n:'Formteil-Daten', g:'part', p:['P701','P702','P703','P704','P705','P706','P707']},
     {n:'Qualität', g:'actv', q:true}]},
-  {id:'act', n:'Istwerte', g:'actv'},
+  {id:'qmon', grp:'qual', n:'Qualitäts­überwachung', g:'actv', subs:[{n:'Qualitätsüberwachung', g:'actv', fn:'qm'}]},
+  {id:'fmon', grp:'qual', n:'Funktions­überwachung', g:'actv', subs:[{n:'Funktionsüberwachung', g:'actv', fn:'fm'}]},
+  {id:'act', grp:'qual', n:'Istwerte', g:'actv'},
+  {id:'prot', grp:'qual', n:'Einricht­protokoll', g:'prot', subs:[{n:'Einrichtprotokoll', g:'prot', fn:'prot'}]},
+  {id:'prog', grp:'sys', n:'Programm­verwaltung', g:'progp', subs:[{n:'Programmverwaltung', g:'progp', fn:'prog'}]},
+  {id:'user', grp:'sys', n:'Bediener', g:'userp', subs:[{n:'Bedienerberechtigung', g:'userp', fn:'user'}]},
+  {id:'msgp', grp:'sys', n:'Meldungen', g:'msgp', subs:[{n:'Meldungen', g:'msgp', fn:'msg'}]},
+  {id:'wart', grp:'sys', n:'Wartung', g:'wartp', subs:[{n:'Wartung', g:'wartp', fn:'wart'}]},
+  {id:'io', grp:'sys', n:'Ein-/Ausgänge', g:'iop', subs:[{n:'Ein-/Ausgänge', g:'iop', fn:'io'}]},
+  {id:'setg', grp:'sys', n:'Einstellungen', g:'setp', subs:[{n:'Einstellungen', g:'setp', fn:'setg'}]},
 ];
+PAGESET.forEach(p=>{ if(!p.grp) p.grp='proc'; });
+PAGESET.find(p=>p.id==='part').grp='qual';
 /* =====================================================================
    FORMTEIL & QUALITÄT
    ===================================================================== */
@@ -1972,11 +2043,13 @@ function gpRange(k,i,row){
 function gpId(k,i,row){ return `${row}${GPDEF[k].id}${String(i+1).padStart(2,'0')}`; }
 function gpGet(c){ return cfg.gp[c.k][c.i][c.row]; }
 function gpSet(c,val){
-  const r=gpRange(c.k,c.i,c.row), id=gpId(c.k,c.i,c.row);
+  if(!canEdit('GP')) return false;
+  const r=gpRange(c.k,c.i,c.row), id=gpId(c.k,c.i,c.row), old=gpGet(c);
   if(val<r.min){ setAlarm('warn',`${id} Datenfehler, Wert kleiner als Minimum`); return false; }
   if(val>r.max){ setAlarm('warn',`${id} Datenfehler, Wert größer als Maximum`); return false; }
   if(c.row==='s' && (val<r.pmin-1e-9||val>r.pmax+1e-9)){ setAlarm('warn',`${id} Wert außerhalb des zulässigen Bereichs [${f2(r.pmin)} – ${f2(r.pmax)}]`); return false; }
   cfg.gp[c.k][c.i][c.row]=val;
+  protLog(id,GPDEF[c.k].n,old,val);
   const last=c.i===cfg.gp[c.k].length-1;
   if(c.row==='s' && last && c.k==='inj') cfg.p.P403=val;
   if(c.row==='s' && last && c.k==='dose'){ cfg.p.P422=val; const I=cfg.gp.inj; if(I[0].s>val) I[0].s=+(val*0.8).toFixed(1); }
@@ -2154,11 +2227,267 @@ function tempPic(){
   el.innerHTML=o;
 }
 
+/* =====================================================================
+   ERWEITERUNG: Gruppen, Überwachung, Protokoll, Meldungen, Berechtigung,
+   Programmverwaltung, Wartung, Ein-/Ausgänge
+   ===================================================================== */
+Object.assign(PDEF,{
+  P130:{n:'Werkzeugeinbauhöhe',u:'mm',v:250,min:200,max:400},
+  P131:{n:'Länge Auswerferstange',u:'mm',v:196,min:50,max:400},
+  P304:{n:'Düse abheben bei Alarm',t:'bool',v:false},
+  P305:{n:'Verzögerungszeit Düse vor',u:'s',v:0,min:0,max:10,st:0.05},
+  P518:{n:'Anzahl Heizzonen Zylinder (Ausrüstung: 5)',u:'',v:5,min:0,max:8,st:1},
+  P801:{n:'Qualitätsüberwachung aktiv',t:'bool',v:true},
+  P810:{n:'Schmierintervall Kniehebel',u:'Zyklen',v:500,min:10,max:2000,st:10},
+});
+['P130','P131','P304','P305','P518','P801','P810'].forEach(k=>{PDEFV[k]=PDEF[k].v; if(cfg.p[k]===undefined) cfg.p[k]=PDEF[k].v;});
+const QMDEF=[
+  {id:'Q01',n:'Umschaltvolumen',u:'cm³',d:2,f:()=>pv('P403'),s:0.004,tol:0.3},
+  {id:'Q02',n:'Max. Spritzdruck',u:'bar',d:0,f:()=>injPressure(),s:0.012,tol:40},
+  {id:'Q03',n:'Einspritzzeit',u:'s',d:2,f:()=>injTime(),s:0.01,tol:0.05},
+  {id:'Q04',n:'Massepolster',u:'cm³',d:2,f:()=>Math.max(0,cushionVol()),s:0.03,tol:0.5},
+  {id:'Q05',n:'Dosierzeit',u:'s',d:2,f:()=>doseTime(),s:0.015,tol:0.3},
+  {id:'Q06',n:'Zykluszeit',u:'s',d:2,f:()=>SCH.T,s:0.003,tol:0.3},
+  {id:'Q07',n:'Formteilgewicht',u:'g',d:2,f:()=>quality().weight,s:0.004,tol:0.1},
+];
+const FMDEF=[
+  {id:'F01',n:'Max. Einspritzzeit',u:'s',v:2.0,ist:()=>injTime()},
+  {id:'F02',n:'Max. Dosierzeit',u:'s',v:15,ist:()=>doseTime()},
+  {id:'F03',n:'Max. Zykluszeit',u:'s',v:40,ist:()=>SCH.T},
+];
+const FOLGE=['sofortiger Maschinenstopp','Stopp am Zyklusende','nur Meldung'];
+const WARTDEF=[
+  {id:'W1',n:'Schließeinheit: Kniehebel / Antriebsplatte schmieren',iv:500},
+  {id:'W2',n:'Schließeinheit: Auswerferplatte schmieren',iv:500},
+  {id:'W3',n:'Holmführungen reinigen und schmieren',iv:1000},
+  {id:'W4',n:'Hydrauliköl und Filter prüfen',iv:2000},
+];
+const LVL=['0 – nur Anzeige','1 – Bediener','2 – Einrichter','3 – Superuser'], LVLCODE=['', '1111','2222','3333'];
+const BEDIENER_P=new Set(['P430','P510','P511','P512','P513','P514','P515','P520']);
+cfg.qm = Object.fromEntries(QMDEF.map(q=>[q.id,{on:q.id!=='Q06',ref:null,tol:q.tol}]));
+cfg.fm = Object.fromEntries(FMDEF.map(q=>[q.id,{on:true,v:q.v,fol:FOLGE[0]}]));
+cfg.user = {name:'Schüler',lvl:3};
+cfg.wart = {hours:0,cycles:0,lube:0,it:Object.fromEntries(WARTDEF.map(w=>[w.id,{ist:0,iv:w.iv}])),book:[]};
+cfg.logs = {prot:[],msg:[]};
+cfg.V = null; cfg.progName='Becher 40x40';
+const lastIst={}; let qmBad=[];
+sim.good=0; sim.bad=0;
+const nowStr=()=>{ const d=new Date(); return d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('de-DE'); };
+function rnd(seed){ const x=Math.sin(seed*12.9898+78.233)*43758.5453; return x-Math.floor(x); }
+function gauss(seed){ return (rnd(seed)+rnd(seed+1.7)+rnd(seed+3.1)-1.5)*2; }
+
+/* ---------- Einrichtprotokoll ---------- */
+function protLog(id,name,oldV,newV){
+  cfg.logs.prot.push({t:nowStr(),lvl:'I',id,name,o:String(oldV),n:String(newV),u:cfg.user.name});
+  if(cfg.logs.prot.length>300) cfg.logs.prot.shift();
+}
+/* ---------- Meldungen ---------- */
+let msgNr=1000;
+function msgLog(type,txt,ref){
+  const L=cfg.logs.msg; if(L.length && L.at(-1).txt===txt && !L.at(-1).q) return;
+  L.push({nr:++msgNr,t:nowStr(),type,txt,ref:ref||null,q:false}); if(L.length>200) L.shift();
+}
+/* ---------- Berechtigung ---------- */
+function canEdit(k){
+  const l=cfg.user.lvl;
+  if(l>=2) return true;
+  if(l===1 && BEDIENER_P.has(k)) return true;
+  setAlarm('warn',`Keine Berechtigung (Stufe ${l}) – ${k} erfordert Stufe ${BEDIENER_P.has(k)?1:2}`); return false;
+}
+function canEditAblauf(){ if(cfg.user.lvl>=2) return true; setAlarm('warn',`Keine Berechtigung: Ablauf editieren erfordert Stufe 2 (Einrichter)`); return false; }
+
+/* ---------- Istwerte je Zyklus, Qualitäts- und Funktionsüberwachung ---------- */
+function cycleEval(){
+  const c=sim.cycle+1; qmBad=[];
+  QMDEF.forEach((q,i)=>{ let v=q.f()*(1+q.s*gauss(c*7+i)); if(rnd(c*3+i)>0.93) v*=1+q.s*4*(rnd(c+i)>0.5?1:-1); lastIst[q.id]=v;
+    const m=cfg.qm[q.id]; if(m.ref===null) m.ref=+q.f().toFixed(q.d);
+    if(pv('P801') && m.on && Math.abs(v-m.ref)>m.tol) qmBad.push(`${q.n} ${v.toFixed(q.d)} ${q.u} (Ref ${m.ref} ± ${m.tol})`); });
+  let stop=null;
+  FMDEF.forEach(f=>{ const m=cfg.fm[f.id]; const v=f.ist(); lastIst[f.id]=v;
+    if(m.on && v>m.v){ const txt=`${f.id} Funktionsüberwachung: ${f.n} überschritten (${v.toFixed(2)} s > ${m.v} s)`;
+      if(m.fol==='nur Meldung') setAlarm('warn',txt,f.id); else stop={txt,imm:m.fol===FOLGE[0],ref:f.id}; } });
+  if(qmBad.length) setAlarm('warn','Qualitätsüberwachung: Teil Ausschuss – '+qmBad[0]);
+  // Wartung
+  const W=cfg.wart; W.cycles++; W.lube++; W.hours+=SCH.T/60; // Simulation: 1 s = 1 min
+  Object.values(W.it).forEach(x=>x.ist+=SCH.T/60);
+  if(W.lube>=pv('P810')){ W.lube=0; msgLog('i','Zentralschmierung Kniehebel ausgeführt'); }
+  const due=WARTDEF.filter(w=>W.it[w.id].ist>=W.it[w.id].iv);
+  if(due.length) setAlarm('warn','Wartung fällig: '+due[0].n);
+  return stop;
+}
+/* ---------- Live-Statuszeile ---------- */
+function liveVals(){
+  const cush=lastIst.Q04??Math.max(0,cushionVol());
+  if(!(sim.running||sim.paused)) return {pos:pv('P422'),cush,p:0};
+  const S=replay(sim.start,SCH,sim.t), t=sim.t;
+  const pos=cush+(pv('P422')-cush)*Math.max(0,Math.min(1.1,(S.screw-0.04)/0.96));
+  let p=0; const act=SCH.items.filter(x=>t>=x.t0&&t<x.t1);
+  act.forEach(x=>{ const f=(t-x.t0)/(x.t1-x.t0||1);
+    if(x.t==='inject') p=injPressure()*(0.3+0.7*f);
+    else if(x.t==='hold'){ let tt=(t-x.t0)-pv('P413'); let pp=cfg.gp.hold[0].p; for(const s of cfg.gp.hold){ pp=s.p; if(tt<s.t) break; tt-=s.t; } p=tt<0?pp*0.5:pp; }
+    else if(x.t==='dose') p=Math.max(p,pv('P424')); });
+  return {pos,cush,p};
+}
+
+/* ---------- Seiten-Renderer ---------- */
+const pbtn2=(pr,cls='')=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t?'b':''} ${cls}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`;
+function fx(v,d=2){ return v===undefined||v===null||isNaN(v)?'–':(+v).toFixed(d).replace('.',','); }
+const FN={
+  qm(){
+    let h=`<div class="pgh ylw">Qualitätsüberwachung</div><div class="plist">${pbtn2('P801')}
+      <table class="cfg mon"><tr><th>Größe</th><th>aktiv</th><th>Istwert</th><th>Referenz</th><th>Toleranz ±</th><th></th><th>Status</th></tr>`;
+    QMDEF.forEach(q=>{ const m=cfg.qm[q.id], v=lastIst[q.id]; const bad=v!==undefined&&m.on&&pv('P801')&&Math.abs(v-m.ref)>m.tol;
+      h+=`<tr><td><b>${q.n}</b><br><small>${q.id}</small></td><td><button class="pval b sm" data-qon="${q.id}">${m.on?'ja':'nein'}</button></td>
+        <td class="istv">${fx(v,q.d)}</td><td><button class="pval sm" data-qref="${q.id}">${fx(m.ref,q.d)}</button></td>
+        <td><button class="pval sm tolf" data-qtol="${q.id}">${fx(m.tol,q.d)}</button></td><td>${q.u}</td><td>${v===undefined?'–':bad?'<b style="color:#c62828">✘ außerhalb</b>':'<b style="color:#2e7d32">✔</b>'}</td></tr>`; });
+    h+=`</table><div class="prow2"><button class="dbtn" data-act="qmref">Istwerte als Referenz übernehmen</button><span class="hint">Gutteile: <b>${sim.good}</b> · Ausschuss: <b>${sim.bad}</b> (Qualitätsweiche)</span></div>
+      <div class="hint">Qualitätsüberwachung prüft jeden Zyklus die Istwerte gegen Referenz ± Toleranz. Liegt ein Wert außerhalb, wird das Teil als <b>Ausschuss</b> aussortiert – die Maschine läuft weiter.</div></div>`;
+    $('vParam').innerHTML=h; $('symInfo').textContent='Wert antippen zum Bearbeiten – gelb = Toleranz, grün = Istwert';
+  },
+  fm(){
+    let h=`<div class="pgh ylw">Funktionsüberwachung</div><div class="plist"><table class="cfg mon"><tr><th>Überwachung</th><th>aktiv</th><th>Istwert</th><th>Grenzwert</th><th>Folgefunktion</th></tr>`;
+    FMDEF.forEach(f=>{ const m=cfg.fm[f.id];
+      h+=`<tr><td><b>${f.n}</b><br><small>${f.id}</small></td><td><button class="pval b sm" data-fon="${f.id}">${m.on?'ja':'nein'}</button></td><td class="istv">${fx(lastIst[f.id]??f.ist())} ${f.u}</td>
+        <td><button class="pval sm tolf" data-fv="${f.id}">${fx(m.v)}</button> ${f.u}</td><td><button class="pval b sm wide" data-ffol="${f.id}">${m.fol}</button></td></tr>`; });
+    h+=`</table><div class="hint"><b>Unterschied:</b> Qualitätsüberwachung = Formteil wird aussortiert. Funktionsüberwachung = Schutz der Maschine/des Werkzeugs: bei Überschreitung je nach Folgefunktion sofortiger Stopp, Stopp am Zyklusende oder nur Meldung.</div></div>`;
+    $('vParam').innerHTML=h; $('symInfo').textContent='Folgefunktion antippen zum Umschalten';
+  },
+  prot(){
+    const L=cfg.logs.prot.slice().reverse();
+    let h=`<div class="pgh ylw">Einrichtprotokoll</div><div class="plist"><table class="cfg mon"><tr><th>Datum / Zeit</th><th>Ebene</th><th>Änderung</th><th>Bediener</th></tr>`;
+    L.slice(0,80).forEach(e=>h+=`<tr><td>${e.t}</td><td>${e.lvl}</td><td><b>${e.id}</b> ${e.name}: ${e.o} → <b>${e.n}</b></td><td>${e.u}</td></tr>`);
+    if(!L.length) h+=`<tr><td colspan="4">Noch keine Änderungen. Jede Parameteränderung wird hier mit Zeit, Bediener und altem/neuem Wert protokolliert.</td></tr>`;
+    h+=`</table><div class="prow2"><button class="dbtn" data-act="protclr">Protokoll löschen</button></div></div>`;
+    $('vParam').innerHTML=h; $('symInfo').textContent=`${cfg.logs.prot.length} Einträge`;
+  },
+  msg(){
+    const L=cfg.logs.msg.slice().reverse();
+    let h=`<div class="pgh grn">Meldungen</div><div class="plist"><table class="cfg mon"><tr><th></th><th>Nr.</th><th>Zeit</th><th>Meldung</th><th></th></tr>`;
+    L.slice(0,100).forEach(m=>h+=`<tr class="${m.q?'qd':''}"><td>${m.type==='err'?'⛔':m.type==='warn'?'⚠':'ⓘ'}</td><td>${m.nr}</td><td>${m.t}</td><td>${m.txt}</td><td>${m.ref?`<button class="dbtn sm" data-goto="${m.ref}">→ Feld</button>`:''}${m.q?'quittiert':''}</td></tr>`);
+    if(!L.length) h+=`<tr><td colspan="5">Keine Meldungen.</td></tr>`;
+    h+=`</table><div class="prow2"><button class="dbtn" data-act="msgq">Alle quittieren</button><button class="dbtn" data-act="msgclr">Liste leeren</button></div></div>`;
+    $('vParam').innerHTML=h; $('symInfo').textContent='Meldungen mit Nummer und Zeit – „→ Feld“ springt zum Parameter';
+  },
+  user(){
+    const u=cfg.user;
+    $('vParam').innerHTML=`<div class="pgh grn">Bedienerberechtigung</div><div class="plist">
+      <div class="prow3"><span>Bedienername</span><button class="pval" data-act="uname">${u.name}</button><span></span></div>
+      <div class="prow3"><span>Berechtigungsstufe</span><button class="pval b wide" data-act="ulvl">${LVL[u.lvl]}</button><span></span></div>
+      <table class="cfg mon"><tr><th>Stufe</th><th>darf</th></tr>
+      <tr><td>0</td><td>nur anzeigen, Maschine starten/stoppen</td></tr><tr><td>1 Bediener</td><td>Restkühlzeit, Temperaturen</td></tr>
+      <tr><td>2 Einrichter</td><td>alle Prozessparameter, Ablauf editieren</td></tr><tr><td>3 Superuser</td><td>zusätzlich Programmverwaltung, Wartung quittieren, Ausrüstung</td></tr></table>
+      <div class="hint">Höhere Stufe nur mit Code. Übungs-Codes: Stufe 1 = 1111, Stufe 2 = 2222, Stufe 3 = 3333.</div></div>`;
+    $('symInfo').textContent='Berechtigung: '+LVL[u.lvl];
+  },
+  prog(){
+    const snap=()=>({name:cfg.progName,dsl:toDSL(prog),cfg:JSON.parse(JSON.stringify({p:cfg.p,prof:cfg.prof,gp:cfg.gp,tool:cfg.tool,drive:cfg.drive,qm:cfg.qm,fm:cfg.fm}))});
+    const desc=s=>s?`<td>${s.name}</td><td>${s.cfg.p.P502}</td><td>Ø ${s.cfg.p.P450} mm</td><td>${s.cfg.p.P701} · ${s.cfg.p.P706} Nest(er)</td><td>${fx(s.cfg.p.P422,1)} cm³</td>`:'<td colspan="5">– leer –</td>';
+    let card=[]; try{ card=JSON.parse(localStorage.getItem('sgmCard')||'[]'); }catch(e){}
+    $('vParam').innerHTML=`<div class="pgh grn">Programmverwaltung</div><div class="plist">
+      <table class="cfg mon"><tr><th>Ebene</th><th>Programm</th><th>Material</th><th>Schnecke</th><th>Formteil</th><th>Dosiervol.</th></tr>
+      <tr><td><b>I – Produktionsebene</b><br><small>läuft auf der Maschine</small></td>${desc(snap())}</tr>
+      <tr><td><b>V – Vorbereitungsebene</b><br><small>nächster Auftrag</small></td>${desc(cfg.V)}</tr></table>
+      <div class="prow2"><button class="dbtn" data-act="pname">Programmname ändern</button><button class="dbtn" data-act="i2v">Kopieren I → V</button><button class="dbtn" data-act="v2i">Kopieren V → I</button><button class="dbtn" data-act="swap">Tauschen I ⇄ V</button></div>
+      <div class="hint">Während die Maschine mit Ebene I produziert, kann der nächste Auftrag in Ebene V vorbereitet werden. Beim Werkzeugwechsel einfach tauschen.</div>
+      <div class="pgh2" style="margin-top:10px">Datenträger (virtuelle Speicherkarte)</div>
+      <table class="cfg mon"><tr><th>Datensatz</th><th>gespeichert</th><th></th></tr>${card.map((c,i)=>`<tr><td>${c.name}</td><td>${c.t}</td><td><button class="dbtn sm" data-cload="${i}">laden → I</button> <button class="dbtn sm" data-cdel="${i}">löschen</button></td></tr>`).join('')||'<tr><td colspan="3">leer</td></tr>'}</table>
+      <div class="prow2"><button class="dbtn" data-act="csave">Ebene I auf Datenträger speichern</button></div></div>`;
+    $('symInfo').textContent='Programm: '+cfg.progName;
+    FN._snap=snap;
+  },
+  wart(){
+    const W=cfg.wart;
+    let h=`<div class="pgh grn">Wartung Maschine</div><div class="plist">
+      <div class="hint">Betriebsstunden Automatik: <b>${fx(W.hours,1)} h</b> (Simulation: 1 s = 1 min) · Zyklen gesamt: <b>${W.cycles}</b></div>
+      ${pbtn2('P810')}<div class="hint">Zentralschmierung Kniehebel: nächste in <b>${pv('P810')-W.lube}</b> Zyklen (automatisch).</div>
+      <table class="cfg mon"><tr><th>Wartungspunkt</th><th>Ist</th><th>Intervall</th><th>Rest</th><th></th></tr>`;
+    WARTDEF.forEach(w=>{ const x=W.it[w.id], rest=x.iv-x.ist;
+      h+=`<tr><td>${w.n}</td><td>${fx(x.ist,1)} h</td><td>${x.iv} h</td><td>${rest<=0?'<b style="color:#c62828">fällig!</b>':fx(rest,1)+' h'}</td><td><button class="dbtn sm" data-wq="${w.id}">✓ erledigt</button></td></tr>`; });
+    h+=`</table><div class="pgh2" style="margin-top:10px">Wartungslogbuch</div><table class="cfg mon"><tr><th>Zeit</th><th>Beschreibung</th><th>Name</th></tr>${W.book.slice().reverse().map(b=>`<tr><td>${b.t}</td><td>${b.n}</td><td>${b.u}</td></tr>`).join('')||'<tr><td colspan="3">leer</td></tr>'}</table></div>`;
+    $('vParam').innerHTML=h; $('symInfo').textContent='Wartung quittieren erfordert Stufe 3';
+  },
+  io(){ $('vParam').innerHTML=`<div class="pgh grn">Ein- / Ausgänge (live)</div><div class="plist"><div id="ioBox"></div><div class="hint">Ausgänge (Y) = Ventile/Antriebe, die die Steuerung schaltet. Eingänge (S) = Endschalter/Sensoren, die die Steuerung abfragt. Starte einen Zyklus und beobachte, wann welche Lampe leuchtet.</div></div>`; ioPic(); $('symInfo').textContent='Lampen leuchten während der Simulation'; },
+  tool(){
+    const Q=quality();
+    $('vParam').innerHTML=`<div class="pgh">Kenngrößen Werkzeug</div><div class="plist">${pbtn2('P130')}${pbtn2('P131')}${pbtn2('P706')}
+      <table class="cfg qt"><tr><td>Formteilgewicht je Kavität</td><td><b>${fx(Q.weight)} g</b></td><td>Gesamtschussgewicht</td><td><b>${fx(Q.shotW)} g</b></td></tr>
+      <tr><td>Materialverbrauch (Simulation)</td><td><b>${fx(Q.shotW*cfg.wart.cycles/1000,3)} kg</b></td><td>Werkzeugeinbauhöhe zulässig</td><td><b>200 – 400 mm</b></td></tr></table>
+      <div class="hint">Die Einbauhöhe muss zur Maschine passen (min/max der Schließeinheit). Die Auswerferstange muss so lang sein, dass der Auswerferweg (${fx(STROKE.ejF(),1)} mm) erreicht wird.</div></div>`;
+    renderPInfo();
+  },
+  setg(){
+    $('vParam').innerHTML=`<div class="pgh grn">Einstellungen</div><div class="plist">
+      <div class="prow2"><button class="dbtn" data-act="mach">Maschine / Antrieb / Werkzeug-Optionen</button><button class="dbtn" data-act="tasks">Aufgaben</button><button class="dbtn" data-act="exp">Export</button><button class="dbtn" data-act="imp">Import</button><button class="dbtn" data-act="help">Hilfe</button></div>
+      <div class="hint">Maschine: ${cfg.machType} · Nr. ${cfg.machNo} · Antrieb: ${DRIVES[cfg.drive].n}</div></div>`;
+    $('symInfo').textContent='Einstellungen';
+  },
+};
+function ioPic(){
+  const box=$('ioBox'); if(!box) return;
+  const live=sim.running||sim.paused, S=live?replay(sim.start,SCH,sim.t):sim.start, t=sim.t;
+  const act=t2=>live&&SCH.items.some(x=>x.t===t2&&t>=x.t0&&t<x.t1);
+  const heat=TZ.slice(0,5).some(z=>pv('P501')&&tIst[z]!==null&&tIst[z]<pv(z)-0.5);
+  const OUT=[['Y101','Werkzeug schließen',act('mold_close')],['Y102','Werkzeug öffnen',act('mold_open')],['Y111','Auswerfer vor',act('ej_fwd')||act('ej_vib')],['Y112','Auswerfer zurück',act('ej_back')||act('ej_stop')],
+    ['Y121','Düse vor',act('nozzle_fwd')],['Y122','Düse zurück',act('nozzle_back')],['Y131','Einspritzen',act('inject')],['Y132','Nachdruck',act('hold')],['Y133','Schneckenantrieb Dosieren',act('dose')],['Y134','Dekompression',act('decomp')],
+    ['Y141','Ausblasventil 1',S.blow],['Y151','Kern ausdrehen',act('mon1_start')],['Y152','Kern eindrehen',act('mon1_end')],['Y161','Schutztür öffnen',act('door_open')],['Y162','Schutztür schließen',act('door_close')],['Y171','Heizung Zylinder',heat],['Y172','Kühlwasser Werkzeug',pv('P521')]];
+  const IN=[['S101','Werkzeug geschlossen',S.mold>0.99],['S102','Werkzeug offen',S.mold<0.01],['S111','Auswerfer hinten',S.ej<0.02],['S112','Auswerfer vorn',S.ej>0.98],['S121','Düse vorn (angelegt)',S.noz>0.98],['S122','Düse hinten',S.noz<0.02],
+    ['S131','Schnecke dosiert',S.screw>=0.98],['S141','Schutztür geschlossen',S.door<0.02],['S151','Kern eingedreht',S.core<0.02],['S152','Kern ausgedreht',S.core>0.98],['S161','Werkzeugsicherung i. O.',!(sim.alarm&&/Werkzeugsicherung/.test(sim.alarm.txt))],['S171','Temperatur im Toleranzband',tempOK()]];
+  const col=(L,c)=>L.map(([id,n,on])=>`<div class="io ${on?'on '+c:''}"><span class="lamp"></span><b>${id}</b> ${n}</div>`).join('');
+  box.innerHTML=`<div class="iogrid"><div><div class="pgh2">Ausgänge (Ventile)</div>${col(OUT,'o')}</div><div><div class="pgh2">Eingänge (Schalter)</div>${col(IN,'i')}</div></div>`;
+}
+function gotoParam(k){
+  for(const P of PAGESET){ if(!P.subs) continue; const i=P.subs.findIndex(s=>s.p&&s.p.includes(k)); if(i>=0){ curGrp=P.grp||'proc'; view=P.id; subIdx=i; selP=k; renderPages(); return true; } }
+  const qi=QMDEF.find(q=>q.id===k), fi=FMDEF.find(q=>q.id===k);
+  if(qi||fi){ curGrp='qual'; view=qi?'qmon':'fmon'; subIdx=0; renderPages(); return true; }
+  return false;
+}
+/* Textdialog */
+function askText(title,val,ok){ $('tTitle').textContent=title; $('tIn').value=val||''; $('tOk').onclick=()=>{ closeDlg('dText'); ok($('tIn').value.trim()); }; openDlg('dText'); setTimeout(()=>$('tIn').focus(),30); }
+let curGrp='proc';
+function sysClick(e){
+  const b=e.target.closest('[data-qon],[data-qref],[data-qtol],[data-fon],[data-fv],[data-ffol],[data-act],[data-goto],[data-cload],[data-cdel],[data-wq]'); if(!b) return false;
+  const D=b.dataset, rer=()=>{ save(); renderPages(); };
+  if(D.qon){ if(!canEdit('Q')) return true; const m=cfg.qm[D.qon]; m.on=!m.on; protLog(D.qon,'Überwachung aktiv',!m.on?'ja':'nein',m.on?'ja':'nein'); rer(); }
+  else if(D.qref||D.qtol){ if(!canEdit('Q')) return true; const id=D.qref||D.qtol, q=QMDEF.find(x=>x.id===id), m=cfg.qm[id], key=D.qref?'ref':'tol';
+    openInput({id:id+(D.qref?'R':'T'),label:q.n+(D.qref?' – Referenz':' – Toleranz ±'),u:q.u,min:0,max:99999,pmin:0,pmax:99999,value:m[key],ok:v=>{ protLog(id,q.n+(D.qref?' Referenz':' Toleranz'),m[key],v); m[key]=v; rer(); }}); }
+  else if(D.fon){ if(!canEdit('F')) return true; const m=cfg.fm[D.fon]; m.on=!m.on; rer(); }
+  else if(D.fv){ if(!canEdit('F')) return true; const f=FMDEF.find(x=>x.id===D.fv), m=cfg.fm[D.fv];
+    openInput({id:D.fv,label:f.n,u:f.u,min:0.01,max:999,pmin:0.01,pmax:999,value:m.v,ok:v=>{ if(v<0.01){setAlarm('warn',`${D.fv} Datenfehler, Wert kleiner als Minimum`);return false;} protLog(D.fv,f.n,m.v,v); m.v=v; rer(); }}); }
+  else if(D.ffol){ if(!canEdit('F')) return true; const m=cfg.fm[D.ffol]; m.fol=FOLGE[(FOLGE.indexOf(m.fol)+1)%FOLGE.length]; protLog(D.ffol,'Folgefunktion','',m.fol); rer(); }
+  else if(D.goto){ gotoParam(D.goto); }
+  else if(D.wq){ if(cfg.user.lvl<3){ setAlarm('warn','Wartung quittieren erfordert Stufe 3'); return true; } const w=WARTDEF.find(x=>x.id===D.wq); cfg.wart.it[D.wq].ist=0; cfg.wart.book.push({t:nowStr(),n:w.n,u:cfg.user.name}); setAlarm('ok','Wartung quittiert: '+w.n); rer(); }
+  else if(D.cload){ if(cfg.user.lvl<3){ setAlarm('warn','Laden erfordert Stufe 3'); return true; } const card=JSON.parse(localStorage.getItem('sgmCard')||'[]'); const c=card[+D.cload]; applySnap(c); protLog('PRG','Datensatz geladen','',c.name); setAlarm('ok','Datensatz geladen: '+c.name); }
+  else if(D.cdel){ const card=JSON.parse(localStorage.getItem('sgmCard')||'[]'); card.splice(+D.cdel,1); localStorage.setItem('sgmCard',JSON.stringify(card)); rer(); }
+  else if(D.act){ const a=D.act;
+    if(a==='qmref'){ QMDEF.forEach(q=>{ if(lastIst[q.id]!==undefined) cfg.qm[q.id].ref=+lastIst[q.id].toFixed(q.d); }); protLog('QM','Referenzen übernommen','','Istwerte'); rer(); }
+    else if(a==='protclr'){ cfg.logs.prot=[]; rer(); }
+    else if(a==='msgq'){ cfg.logs.msg.forEach(m=>m.q=true); if(sim.alarm&&sim.alarm.type!=='err') setAlarm('ok','Meldungen quittiert'); rer(); }
+    else if(a==='msgclr'){ cfg.logs.msg=[]; rer(); }
+    else if(a==='uname'){ askText('Bedienername',cfg.user.name,v=>{ if(v){ protLog('USR','Bedienername',cfg.user.name,v); cfg.user.name=v; rer(); } }); }
+    else if(a==='ulvl'){ const nx=(cfg.user.lvl+1)%4;
+      if(nx<cfg.user.lvl){ protLog('USR','Berechtigungsstufe',cfg.user.lvl,nx); cfg.user.lvl=nx; rer(); }
+      else openInput({id:'Code',label:'Code für '+LVL[nx],u:'',min:0,max:9999,pmin:0,pmax:9999,value:'',ok:v=>{ if(String(Math.round(v))!==LVLCODE[nx]){ setAlarm('warn','Code falsch – Berechtigungsstufe nicht geändert'); return; } protLog('USR','Berechtigungsstufe',cfg.user.lvl,nx); cfg.user.lvl=nx; setAlarm('ok','Berechtigung: '+LVL[nx]); rer(); }}); }
+    else if(a==='pname'){ askText('Programmname',cfg.progName,v=>{ if(v){ protLog('PRG','Programmname',cfg.progName,v); cfg.progName=v; rer(); } }); }
+    else if(['i2v','v2i','swap','csave'].includes(a)){ if(cfg.user.lvl<3){ setAlarm('warn','Programmverwaltung erfordert Stufe 3'); return true; }
+      const I=FN._snap();
+      if(a==='i2v'){ cfg.V=I; setAlarm('ok','Ebene I nach V kopiert'); rer(); }
+      else if(a==='v2i'){ if(!cfg.V){ toast('Ebene V ist leer'); return true; } applySnap(cfg.V); setAlarm('ok','Ebene V nach I kopiert'); }
+      else if(a==='swap'){ if(!cfg.V){ toast('Ebene V ist leer'); return true; } const V=cfg.V; cfg.V=I; applySnap(V); setAlarm('ok','Ebenen getauscht'); }
+      else { const card=JSON.parse(localStorage.getItem('sgmCard')||'[]'); card.push({...I,t:nowStr()}); try{ localStorage.setItem('sgmCard',JSON.stringify(card)); setAlarm('ok','Gespeichert: '+I.name); }catch(err){ toast('Speichern nicht möglich'); } rer(); }
+      protLog('PRG',{i2v:'Kopieren I→V',v2i:'Kopieren V→I',swap:'Tauschen I⇄V',csave:'Speichern'}[a],'',I.name); }
+    else if(a==='mach'){ $('bMachine').click(); } else if(a==='tasks'){ $('bTasks').click(); } else if(a==='exp'){ $('bExport').click(); } else if(a==='imp'){ $('bImport').click(); } else if(a==='help'){ $('bHelp').click(); }
+  }
+  return true;
+}
+function applySnap(sn){ pushUndo(); cfg.progName=sn.name; prog=parse(sn.dsl); Object.assign(cfg,JSON.parse(JSON.stringify(sn.cfg))); resetSim(); changed(); renderPages(); }
+
 let view='flow', subIdx=0, selP=null;
 const actLog=[];
 function fmtV(k){ const d=PDEF[k], v=pv(k); if(d.t==='bool') return v?'ja':'nein'; if(d.t==='sel') return v; return (+v).toLocaleString('de-DE',{maximumFractionDigits:2}); }
+function fieldBad(k){ return k==='P518' && pv('P518')!==5; }
 function renderPages(){
-  $('pages1').innerHTML=PAGESET.map(p=>`<button class="pg ${view===p.id?'on':''}" data-pg="${p.id}" title="${p.n}">${glyphSVG(p.g,34)}<span>${p.n}</span></button>`).join('');
+  document.querySelectorAll('#grpSw button').forEach(b=>b.classList.toggle('on',b.dataset.grp===curGrp));
+  $('pages1').innerHTML=PAGESET.filter(p=>p.grp===curGrp).map(p=>`<button class="pg ${view===p.id?'on':''}" data-pg="${p.id}" title="${p.n}">${glyphSVG(p.g,34)}<span>${p.n}</span></button>`).join('');
   const P=PAGESET.find(p=>p.id===view);
   const r2=$('pages2');
   if(P && P.subs){ r2.style.display='flex'; r2.innerHTML=P.subs.map((s,i)=>`<button class="pg sub ${i===subIdx?'on':''}" data-sub="${i}" title="${s.n}">${glyphSVG(s.g,30)}<span>${s.n}</span></button>`).join(''); }
@@ -2172,12 +2501,14 @@ function renderPages(){
   if(isFlow){ renderFlow(); return; }
   if(view==='act'){ renderAct(); return; }
   const S=P.subs[subIdx];
+  if(S.fn && !S.p){ FN[S.fn](); return; }
+  if(S.fn==='tool'){ FN.tool(); return; }
   if(S.prof){ renderProfile(S.prof); return; }
   if(S.q){ renderQuality(); return; }
   if(S.gp){ renderGP(S.gp); return; }
-  let h=`<div class="pgh">${S.n}</div><div class="plist">`;
+  let h=`<div class="pgh ${/^Auswahl/.test(S.n)?'grn':''}">${S.n}</div><div class="plist">`;
   S.p.forEach(k=>{ const d=PDEF[k];
-    h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
+    h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''} ${fieldBad(k)?'bad':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
   const used=new Set(S.p);
   const affected=Object.keys(SYM).filter(t=>t!=='start'&&t!=='end'&&SCH.items.some(x=>x.t===t));
   if(S.prev==='vib') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
@@ -2219,11 +2550,13 @@ function renderAct(){
 }
 function logCycle(ok){
   const f=v=>v.toFixed(2).replace('.',',');
-  actLog.push({n:sim.cycle,T:f(SCH.T),d:f(dur('dose')),p:injPressure(),c:f(Math.max(0,cushionVol())),ok:ok&&quality().ok,q:quality().D.filter(d=>d.sev>=2).map(d=>d.n).join(', ')});
+  actLog.push({n:sim.cycle,T:f(SCH.T),d:f(dur('dose')),p:injPressure(),c:f(Math.max(0,cushionVol())),ok,q:[...quality().D.filter(d=>d.sev>=2).map(d=>d.n),...qmBad.map(x=>'QÜ: '+x.split(' ')[0])].join(', ')});
   if(view==='act') renderAct();
 }
 function setParam(k,val){
   const d=PDEF[k];
+  if(!canEdit(k)) return false;
+  const old=fmtV(k);
   if(d.t==='num'||!d.t){
     val=parseFloat(String(val).replace(',','.'));
     if(isNaN(val)){ toast('Ungültige Eingabe'); return false; }
@@ -2231,6 +2564,7 @@ function setParam(k,val){
     if(val>d.max){ setAlarm('warn',`${k} Datenfehler, Wert größer als Maximum (${d.max})`); return false; }
   }
   cfg.p[k]=val;
+  protLog(k,d.n,old,fmtV(k));
   if(k==='P450'||k==='P451') toast(`Max. Dosiervolumen jetzt ${vMax()} cm³ · max. Spritzdruck ${pMaxInj()} bar`);
   if(k==='P403'){ const I=cfg.gp.inj; if(I.length>1 && I.at(-2).s<=val){ toast('Umschaltpunkt muss kleiner als Ende der vorletzten Einspritzstufe sein'); } }
   if(k==='P502'){ const [mn,mx,o]=MAT[val]; ['P510','P511'].forEach(z=>cfg.p[z]=o); cfg.p.P512=o-5; cfg.p.P513=o-15; cfg.p.P514=o-30; toast(`Material ${val}: Temperaturen auf Richtwerte gesetzt (${mn}–${mx} °C)`); }
@@ -2246,6 +2580,7 @@ function editParam(k){
 $('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; gpSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
 $('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; gpSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); });
 $('vParam').addEventListener('click',e=>{
+  if(sysClick(e)) return;
   const tz=e.target.closest('[data-tz]'); if(tz){ editParam(tz.dataset.tz); return; }
   const gc=e.target.closest('.gpc'); if(gc){ editGPCell({k:gc.dataset.gk,i:+gc.dataset.i,row:gc.dataset.r}); return; }
   const gs=e.target.closest('[data-gstage]'); if(gs){ gpStage(gs.dataset.gk,+gs.dataset.gstage); return; }
@@ -2340,6 +2675,8 @@ function renderProcess(){
 $('sProc').onclick=()=>{ openDlg('dProc'); renderProcess(); };
 ['pSingle','pAuto','pStop'].forEach(id=>$(id).onclick=()=>$({pSingle:'bSingle',pAuto:'bAuto',pStop:'bStop'}[id]).click());
 
+$('grpSw').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; curGrp=b.dataset.grp; view={proc:'flow',qual:'qmon',sys:'prog'}[curGrp]; subIdx=0; selP=null; $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
+$('alarm').addEventListener('click',()=>{ if(sim.alarm&&sim.alarm.ref) gotoParam(sim.alarm.ref); else { curGrp='sys'; view='msgp'; subIdx=0; renderPages(); } });
 function toggleSec(btn,sec){ const s=$(sec); s.classList.toggle('show'); $(btn).classList.toggle('on',s.classList.contains('show')); if(sec==='secGantt') renderGantt(); }
 $('sMach').onclick=()=>toggleSec('sMach','secMach');
 $('sGantt').onclick=()=>toggleSec('sGantt','secGantt');
