@@ -149,6 +149,39 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .keys button{height:48px;font-size:20px;border:1px solid #666;border-radius:3px;background:#fff}
 .procbar{display:flex;justify-content:space-between;background:#3d444c;color:#ffd84d;padding:6px 10px;margin-bottom:6px;font-size:15px}
 .dlg.proc{background:rgba(0,0,0,.15)}
+.profwrap{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:10px;padding:8px 10px}
+.profL{min-width:0}
+.prow1{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-bottom:6px}
+.prow1 .pn{font-weight:600;margin-right:auto}
+.pchart{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
+.ptab{display:grid;gap:4px;margin-top:8px;align-items:center}
+.phd{text-align:center;font-weight:700}
+.phd.stg{background:#d0d4d8;border:1px solid #666;border-radius:2px;padding:6px 0}
+.phd.stg.ws{background:#f2c230}
+.rl{font-weight:700;text-align:center;font-size:16px}
+.pc{height:40px;background:#fff;border:1px solid #555;border-radius:2px;font-size:15px;font-weight:600;text-align:right;padding:0 6px;min-width:0}
+.pc.on{background:var(--blue);color:#fff}
+.pc.ro{background:#e6e8ea;display:flex;align-items:center;justify-content:flex-end;color:#444}
+.prow1 .pc{width:110px}
+.prow2{display:flex;gap:8px;align-items:center;margin-top:8px}
+.profR{background:#e4e7ea;border:1px solid #aaa;padding:0 0 8px}
+.pgh2{background:#a9afb4;font-weight:700;padding:4px 8px;margin-bottom:6px}
+.prow3{display:grid;grid-template-columns:1fr 90px 34px;gap:6px;align-items:center;padding:3px 8px;font-size:13px}
+.prow3 .pval{height:36px;font-size:15px}
+.zbar{height:90px;width:60px;margin:4px auto 8px;border:1px solid #777;background:#fff;position:relative;display:flex;align-items:flex-end}
+.zbar div{width:100%;background:#c62828;opacity:.75}
+.zbar span{position:absolute;left:66px;bottom:0;font-size:12px;white-space:nowrap;color:#c62828;font-weight:700}
+.kbox{width:min(360px,94vw);border:3px solid var(--blue)}
+.kbox .kx{width:46px;height:40px;background:#8b9196!important;border:1px solid #555!important;border-radius:2px;font-size:24px!important}
+.krange{font-weight:700;font-size:15px;margin-bottom:6px}
+.kline{display:flex;align-items:center;gap:6px;font-weight:700}
+.kline input{flex:1;font-size:24px;padding:4px 8px;border:1px solid #888;color:#1d4f8f;font-weight:700;min-width:0}
+.keys{grid-template-columns:repeat(4,1fr)!important}
+.keys button{background:linear-gradient(#c3c8cc,#a9afb4)!important;font-weight:700}
+.keys button.kb{background:var(--blue)!important;color:#fff;border-color:#1d4f8f}
+.keys button.kb svg{width:28px;height:28px}
+.keys button.big{font-size:28px}
+@media (max-width:800px){.profwrap{grid-template-columns:1fr}}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -305,11 +338,19 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
   <div class="df"><button class="dbtn" data-close>Abbrechen</button><button class="dbtn pri" id="confOk">OK</button></div>
 </div></div>
 
-<div class="dlg" id="dKey"><div class="dbox" style="width:min(340px,94vw)">
-  <div class="dh"><span id="kTitle">Wert</span><button data-close>×</button></div>
-  <div class="db"><div class="hint" id="kRange" style="padding:0 0 6px"></div><input id="kIn" inputmode="decimal" style="width:100%;font-size:24px;padding:6px;text-align:right">
-  <div id="kKeys" class="keys"><button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k=",">,</button><button data-k="0">0</button><button data-k="<">⌫</button><button data-k="C" style="grid-column:span 3">C</button></div></div>
-  <div class="df"><button class="bq big" data-close>N</button><button class="bq big" id="kY">Y</button></div>
+<div class="dlg" id="dKey"><div class="dbox kbox">
+  <div class="dh"><span>✎ <span id="kTitle">Eingabe</span></span><button data-close class="kx">✕</button></div>
+  <div class="db"><div id="kRange" class="krange"></div>
+  <div class="kline"><span id="kId"></span><input id="kIn" inputmode="decimal" autocomplete="off"><span id="kUnit"></span></div>
+  <div id="kKeys" class="keys">
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button data-k="<">←</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><span></span>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><span></span>
+    <button data-k="0">0</button><button data-k=".">.</button><button data-k="neg">(-)</button><span></span>
+    <button data-k="prev" class="kb" title="vorheriges Feld"><svg viewBox="0 0 30 30"><path d="M5 5v20h20z" fill="none" stroke="#fff" stroke-width="2"/></svg></button>
+    <button data-k="next" class="kb" title="nächstes Feld"><svg viewBox="0 0 30 30"><path d="M25 5v20H5z" fill="#fff"/></svg></button>
+    <button data-k="N" class="kb big">N</button><button data-k="Y" class="kb big">Y</button>
+  </div></div>
 </div></div>
 
 <div class="dlg proc" id="dProc"><div class="dbox" style="width:min(820px,98vw)">
@@ -484,7 +525,7 @@ function load(){
   try{
     const s = JSON.parse(localStorage.getItem('sgmTrainer')||'null');
     if(!s) return;
-    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, p:{...PDEFV,...(s.cfg.p||{})}}; }
+    if(s.cfg){ cfg = {...cfg, ...s.cfg, tool:{...cfg.tool,...(s.cfg.tool||{})}, p:{...PDEFV,...(s.cfg.p||{})}, prof:{...clone(PROFDEF),...(s.cfg.prof||{})}}; }
     if(typeof s.dsl==='string') prog = parse(s.dsl);
     curTask = s.curTask||null; taskRes = s.taskRes||{};
   }catch(e){}
@@ -747,7 +788,8 @@ function plausibility(sch){
   if(tool.insert && has('ej_stop') && !has('door_open')) res.info.push('Zwischenstopp: Bediener öffnet die Schutztür von Hand, legt ein und schließt wieder. (Aufgabe 4: automatisch!)');
   if(tool.sprue && !has('nozzle_back')) res.warn.push({msg:'Stangenanguss: Düse bleibt dauerhaft angelegt → Düse kühlt ab. Düse zurück programmieren.'});
   if(tool.core && !(has('mon1_start')&&has('mon1_end'))) res.warn.push({msg:'Ausdrehkern wird nicht angesteuert → Überwachung 1 Start und Stopp programmieren.'});
-  paramChecks(res);
+  paramChecks(res); profChecks(res);
+  if(res.errGlobalClose){ const x=sch.items.find(i=>i.t==='mold_close'); if(x){ res.err[0][x.id]=res.errGlobalClose; res.err[1][x.id]=res.errGlobalClose; } }
   if(res.errGlobal){ const x=sch.items.find(i=>i.t==='inject'||i.t==='dose'); if(x){ res.err[0][x.id]=res.errGlobal; res.err[1][x.id]=res.errGlobal; } }
   // Doppelte Warnungen entfernen
   const seen=new Set(); res.warn=res.warn.filter(w=>!seen.has(w.msg)&&seen.add(w.msg));
@@ -770,10 +812,10 @@ function replay(start, sch, t){
     const d=x.t1-x.t0; const p=d>0?Math.min(1,(t-x.t0)/d):1;
     const P=S.part;
     switch(x.t){
-      case 'mold_close': S.mold=lerp(S.mold,1,p); break;
+      case 'mold_close': S.mold=lerp(S.mold,1,profFrac('close',p)); break;
       case 'mold_open':
         if(P.has && P.fallAt===null && S.mold>0.99){ P.side = tool.stickNozzle?'fixed':'moving'; }
-        openAt=x.t0+0.35*d; S.mold=lerp(S.mold,0,p); break;
+        openAt=x.t0+0.35*d; S.mold=lerp(S.mold,0,profFrac('open',p)); break;
       case 'inject': S.screw=lerp(S.screw,0.08,p); if(!P.has||P.fallAt!==null){P.has=true;P.fallAt=null;P.side='moving';P.off=0;P.stuck=false;} P.fill=p; P.temp=1; S.drool=false; break;
       case 'hold': S.screw=lerp(S.screw,0.04,p); break;
       case 'cool': S.cool=p<1; if(P.has&&P.fallAt===null) P.temp=Math.min(P.temp,1-0.85*p); break;
@@ -783,9 +825,9 @@ function replay(start, sch, t){
       case 'nozzle_back': {
         const dosedNoDecomp = S.screw>0.95 && S.screw<1.01;
         S.noz=lerp(S.noz,0,p); if(dosedNoDecomp && p>0.3) S.drool=true; break; }
-      case 'ej_fwd': S.ej=lerp(S.ej,1,p); break;
-      case 'ej_back': S.ej=lerp(S.ej,0,p); break;
-      case 'ej_stop': S.ej=lerp(S.ej,0.45,p); break;
+      case 'ej_fwd': S.ej=lerp(S.ej,1,profFrac('ejF',p)); break;
+      case 'ej_back': S.ej=lerp(S.ej,0,profFrac('ejB',p)); break;
+      case 'ej_stop': S.ej=lerp(S.ej,pv('P205')/STROKE.ejF(),p); break;
       case 'ej_vib': S.ej=1; S.vibOff = p<1 ? 0.25*Math.sin(p*Math.PI*14) : 0; if(p>0.15) vibDone=true; break;
       case 'door_open': S.door=lerp(S.door,1,p); break;
       case 'door_close': S.door=lerp(S.door,0,p); break;
@@ -1181,7 +1223,7 @@ $('machBody').addEventListener('change',e=>{
   else if(el.id==='cType') cfg.machType=el.value;
   changed();
 });
-$('durReset').onclick=()=>{ cfg.p={...PDEFV}; renderMach(); changed(); toast('Alle Parameter auf Standard'); };
+$('durReset').onclick=()=>{ cfg.p={...PDEFV}; cfg.prof=clone(PROFDEF); renderMach(); changed(); toast('Alle Parameter auf Standard'); };
 
 // --- Aufgaben ---
 function norm(dsl,core){ return core? dsl.replace(/mon1_(start|end)/g,'mon1') : dsl; }
@@ -1303,7 +1345,7 @@ $('bImport').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=e=>{
   const f=e.target.files[0]; if(!f) return;
   f.text().then(txt=>{
-    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},p:{...PDEFV,...(d.cfg.p||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
+    try{ const d=JSON.parse(txt); pushUndo(); prog=parse(d.ablauf||''); if(d.cfg) cfg={...cfg,...d.cfg,tool:{...cfg.tool,...(d.cfg.tool||{})},p:{...PDEFV,...(d.cfg.p||{})},prof:{...clone(PROFDEF),...(d.cfg.prof||{})}}; sel=null; changed(); toast('Ablauf geladen'); }
     catch(err){ toast('Datei ungültig'); }
   });
   e.target.value='';
@@ -1323,16 +1365,10 @@ window.addEventListener('resize',()=>{ renderGantt(); });
 const MAT = {PP:[200,280,230],PE:[180,280,220],ABS:[210,270,240],PA6:[240,290,260],PC:[280,320,300]};
 const PDEF = {
   // Werkzeug
-  P101:{n:'Schließgeschwindigkeit',u:'mm/s',v:250,min:10,max:600},
   P102:{n:'Werkzeugsicherung Zeit',u:'s',v:0.2,min:0.05,max:2,st:0.05},
   P103:{n:'Schließkraft',u:'kN',v:600,min:50,max:600},
   P104:{n:'Werkzeugsicherung aktiv',t:'bool',v:true},
-  P111:{n:'Öffnungsweg',u:'mm',v:250,min:50,max:400},
-  P112:{n:'Öffnungsgeschwindigkeit',u:'mm/s',v:300,min:10,max:600},
   // Auswerfer
-  P201:{n:'Auswerferweg',u:'mm',v:40,min:1,max:150},
-  P202:{n:'Geschwindigkeit Auswerfer vor',u:'mm/s',v:100,min:5,max:400},
-  P203:{n:'Geschwindigkeit Auswerfer zurück',u:'mm/s',v:120,min:5,max:400},
   P204:{n:'Anzahl Rüttelhübe',u:'',v:3,min:1,max:10,st:1},
   P205:{n:'Zwischenstopp-Position',u:'mm',v:20,min:0,max:150},
   P206:{n:'Auswerfer bei Hand freigegeben',t:'bool',v:true},
@@ -1375,20 +1411,190 @@ const PDEF = {
 const PDEFV = Object.fromEntries(Object.entries(PDEF).map(([k,d])=>[k,d.v]));
 cfg.p = {...PDEFV};
 const pv = k => cfg.p[k];
+/* =====================================================================
+   BEWEGUNGSPROFILE (Stufen) – Werkzeug schließen/öffnen, Auswerfer vor/zurück
+   Jede Stufe: v [mm/s], F [kN] (Kraftbegrenzung), s = Ende der Stufe [mm]
+   ===================================================================== */
+const PROFDEF = {
+  close:{n:'Werkzeug schließen', id:1, dir:-1, vmax:1200, fmax:60, delay:0,
+         st:[{v:300,F:40,s:150},{v:500,F:40,s:60},{v:200,F:40,s:20},{v:80,F:30,s:5},{v:30,F:15,s:2,ws:true}]},
+  open: {n:'Werkzeug öffnen',    id:2, dir:1,  vmax:1200, fmax:60, delay:0,
+         st:[{v:60,F:60,s:10},{v:400,F:60,s:200},{v:120,F:60,s:250}]},
+  ejF:  {n:'Auswerfer vor',      id:3, dir:1,  vmax:500,  fmax:40, delay:0,
+         st:[{v:60,F:20,s:10},{v:150,F:20,s:40}]},
+  ejB:  {n:'Auswerfer zurück',   id:4, dir:-1, vmax:500,  fmax:40, delay:0,
+         st:[{v:150,F:20,s:10},{v:60,F:20,s:0}]},
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+cfg.prof = clone(PROFDEF);
+PDEF.P105={n:'Schließkraftaufbau (Zuhalten)',u:'s',v:0.2,min:0.05,max:3,st:0.05};
+PDEFV.P105=0.2; cfg.p.P105=0.2;
+PDEF.P102.v=0.3; PDEFV.P102=0.3; cfg.p.P102=0.3;
+PDEF.P102.n='Überwachungszeit Werkzeugsicherung';
+const STROKE = {close:()=>cfg.prof.open.st.at(-1).s, open:()=>cfg.prof.open.st.at(-1).s, ejF:()=>cfg.prof.ejF.st.at(-1).s, ejB:()=>cfg.prof.ejF.st.at(-1).s};
+function startPos(k){ return (k==='close'||k==='ejB') ? STROKE[k]() : 0; }
+function segments(k){
+  const P=cfg.prof[k]; let pos=startPos(k); const seg=[];
+  P.st.forEach((st,i)=>{ seg.push({from:pos,to:st.s,v:Math.max(0.1,st.v),i}); pos=st.s; });
+  if(k==='close'){ seg.push({from:pos,to:0,v:Math.max(0.1,P.st.at(-1).v)*0.5,i:P.st.length-1,last:true}); }
+  return seg;
+}
+function profTime(k){
+  const P=cfg.prof[k]; let t=P.delay||0;
+  segments(k).forEach(s=>t+=Math.abs(s.to-s.from)/s.v);
+  if(k==='close') t+=pv('P105');
+  return t;
+}
+/* Anteil des Weges nach Zeitanteil p (für Animation mit Stufen) */
+function profFrac(k,p){
+  const T=profTime(k); let t=p*T; const P=cfg.prof[k];
+  const segs=segments(k), total=Math.abs(startPos(k)-(k==='close'?0:k==='ejB'?0:STROKE[k]()))||1;
+  t-=P.delay||0; if(t<=0) return 0;
+  let done=0;
+  for(const s of segs){ const d=Math.abs(s.to-s.from), ts=d/s.v; if(t<=ts) return Math.min(1,(done+t*s.v)/total); t-=ts; done+=d; }
+  return 1;
+}
+function wsTime(){ const st=cfg.prof.close.st, n=st.length; const prev=n>1?st[n-2].s:STROKE.close(); return Math.abs(prev-st[n-1].s)/Math.max(0.1,st[n-1].v); }
+function travelTime(k,a,b){ // Zeit zwischen Position a und b im Profil
+  let t=0; segments(k).forEach(s=>{ const lo=Math.min(s.from,s.to), hi=Math.max(s.from,s.to); const L=Math.max(0,Math.min(hi,Math.max(a,b))-Math.max(lo,Math.min(a,b))); t+=L/s.v; }); return t;
+}
+function profChecks(res){
+  const c=cfg.prof.close, ws=c.st.at(-1);
+  if(pv('P104') && wsTime()>pv('P102')) res.errGlobalClose=`Werkzeugsicherung ausgelöst: Zeit ${wsTime().toFixed(2)} s > ${pv('P102')} s (Stufe WS zu langsam oder zu lang)`;
+  if(ws.F>30) res.warn.push({msg:`Werkzeugsicherung: Kraft ${ws.F} kN zu hoch – Werkzeugbeschädigung bei Fremdkörper möglich.`});
+  if(ws.v>100) res.warn.push({msg:'Werkzeugsicherung: Geschwindigkeit sehr hoch – Werkzeug fährt hart auf.'});
+  if(cfg.prof.open.st[0].v>150) res.warn.push({msg:'Werkzeug öffnen: 1. Stufe (Losbrechen) zu schnell – Formteil kann beschädigt werden.'});
+  if(cfg.prof.ejF.st[0].v>200) res.warn.push({msg:'Auswerfer vor: Anfahrstufe sehr schnell – Formteil kann durchgestoßen werden.'});
+}
+/* Profil-Seite */
+function rangeOf(k,i,row){
+  const P=cfg.prof[k], st=P.st;
+  if(row==='v') return {min:1,max:P.vmax,pmin:1,pmax:P.vmax,u:'mm/s'};
+  if(row==='F') return {min:0,max:P.fmax,pmin:0,pmax:P.fmax,u:'kN'};
+  if(row==='d') return {min:0,max:10,pmin:0,pmax:10,u:'s'};
+  const prev=i===0?startPos(k):st[i-1].s, next=i<st.length-1?st[i+1].s:null;
+  const lim = k==='close'||k==='open'?400:150;
+  let pmin,pmax;
+  if(P.dir<0){ pmax=prev; pmin= next===null?0:next; }
+  else { pmin=prev; pmax= next===null?lim:next; }
+  if(k==='close' && i===st.length-1) pmin=0.5;
+  if(k==='ejB' && i===st.length-1){ pmin=0; pmax=0; }
+  return {min:0,max:lim,pmin,pmax,u:'mm'};
+}
+function fieldId(k,i,row){ return `${row==='d'?'t':row}${PROFDEF[k].id}${String(i+1).padStart(2,'0')}`; }
+function cellsOf(k){ const f=[{k,i:0,row:'d'}]; cfg.prof[k].st.forEach((_,i)=>['v','F','s'].forEach(r=>f.push({k,i,row:r}))); return f; }
+function getCell(c){ const P=cfg.prof[c.k]; return c.row==='d'?P.delay:P.st[c.i][c.row]; }
+function setCell(c,val){
+  const r=rangeOf(c.k,c.i,c.row);
+  if(val<r.min){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Datenfehler, Wert kleiner als Minimum`); return false; }
+  if(val>r.max){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Datenfehler, Wert größer als Maximum`); return false; }
+  if(c.row==='s' && (val<r.pmin-1e-9 || val>r.pmax+1e-9)){ setAlarm('warn',`${fieldId(c.k,c.i,c.row)} Wert außerhalb des zulässigen Bereichs [${r.pmin} – ${r.pmax}]`); return false; }
+  if(c.row==='d') cfg.prof[c.k].delay=val; else cfg.prof[c.k].st[c.i][c.row]=val;
+  if(c.k==='open' && c.row==='s' && c.i===cfg.prof.open.st.length-1){ // Öffnungsweg geändert -> Schließprofil anpassen
+    const cs=cfg.prof.close.st; if(cs[0].s>=val) cs[0].s=Math.round(val*0.6);
+  }
+  if(c.k==='ejF' && c.row==='s' && c.i===cfg.prof.ejF.st.length-1){ const bs=cfg.prof.ejB.st; if(bs[0].s>=val) bs[0].s=Math.round(val*0.25); if(pv('P205')>val) cfg.p.P205=Math.round(val/2); }
+  if(!cfg.prof.ejB.st.length || cfg.prof.ejB.st.at(-1).s!==0) cfg.prof.ejB.st.at(-1).s=0;
+  setAlarm('ok','Wert übernommen'); changed(); renderPages(); return true;
+}
+function stageAdd(k,delta){
+  const st=cfg.prof[k].st, P=cfg.prof[k];
+  const maxN = k==='close'?6:5, minN=k==='close'?2:1;
+  if(delta>0){ if(st.length>=maxN){toast('Maximale Stufenanzahl erreicht');return;}
+    const idx = k==='close'? st.length-1 : st.length-1; // vor letzter Stufe (WS bzw. Endstufe) einfügen
+    const prev= idx===0?startPos(k):st[idx-1].s, nxt=st[idx].s;
+    st.splice(idx,0,{v:st[idx].v,F:st[idx].F,s:Math.round((prev+nxt)/2*100)/100});
+  } else { if(st.length<=minN){toast('Mindestanzahl Stufen');return;} st.splice(st.length-2,1); }
+  changed(); renderPages();
+}
+function f2(v){ return (+v).toFixed(2); }
+function profChart(k){
+  const P=cfg.prof[k], W=520, H=190, L=48, R=40, T=14, B=26;
+  const segs=segments(k); const s0=startPos(k), s1= (k==='close'||k==='ejB')?0:STROKE[k]();
+  const X=s=>L+(W-L-R)*Math.abs(s-s0)/Math.max(1e-6,Math.abs(s1-s0));
+  const vmax=Math.max(...P.st.map(x=>x.v))*1.15, fmax=P.fmax;
+  const Yv=v=>H-B-(H-B-T)*v/vmax, Yf=f=>H-B-(H-B-T)*f/fmax;
+  let o=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-B-T}" fill="#f4f6f7" stroke="#888"/>`;
+  segs.forEach(s=>{ const x1=X(s.from),x2=X(s.to); o+=`<rect x="${Math.min(x1,x2)}" y="${Yv(s.v)}" width="${Math.abs(x2-x1)}" height="${H-B-Yv(s.v)}" fill="${s.last?'#7aa6dc':(P.st[s.i].ws?'#e0a100':'#2f73c9')}" opacity=".85"/>`;
+    if(!s.last) o+=`<text x="${(x1+x2)/2}" y="${H-B-4}" font-size="10" fill="#fff" text-anchor="middle">${P.st[s.i].ws?'WS':s.i+1}</text>`; });
+  let fp=''; segs.forEach(s=>{ if(s.last) return; const f=P.st[s.i].F; fp+=`M${X(s.from)} ${Yf(f)}H${X(s.to)}`; });
+  o+=`<path d="${fp}" stroke="#c62828" stroke-width="2" fill="none"/>`;
+  o+=`<text x="${L-4}" y="${T+10}" font-size="11" fill="#1d4f8f" text-anchor="end">${Math.round(vmax)}</text><text x="${L-4}" y="${T+22}" font-size="10" fill="#1d4f8f" text-anchor="end">mm/s</text>`;
+  o+=`<text x="${W-R+4}" y="${T+10}" font-size="11" fill="#c62828">${fmax}</text><text x="${W-R+4}" y="${T+22}" font-size="10" fill="#c62828">kN</text>`;
+  o+=`<text x="${L}" y="${H-8}" font-size="11" fill="#333">${f2(s0)}</text><text x="${W-R}" y="${H-8}" font-size="11" fill="#333" text-anchor="end">${f2(s1)} mm</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" class="pchart">${o}</svg>`;
+}
+let profSel=null;
+function renderProfile(k){
+  const P=cfg.prof[k], st=P.st;
+  const cell=(i,row)=>{ const c={k,i,row}; const id=fieldId(k,i,row); const on=profSel&&profSel.k===k&&profSel.i===i&&profSel.row===row;
+    return `<button class="pc ${on?'on':''}" data-k="${k}" data-i="${i}" data-r="${row}" title="${id}">${row==='v'?Math.round(getCell(c)):f2(getCell(c))}</button>`; };
+  let h=`<div class="pgh">${P.n}</div><div class="profwrap"><div class="profL">
+    <div class="prow1"><span class="pn">Verzögerungszeit</span>${cell(0,'d')}<span class="pu">s</span></div>
+    ${profChart(k)}
+    <div class="ptab" style="grid-template-columns:34px 80px repeat(${st.length},1fr) 46px">
+      <span></span><span class="phd">${glyphSVG(k==='close'?'mold_close':k==='open'?'mold_open':k==='ejF'?'ej_fwd':'ej_back',26)}</span>
+      ${st.map((x,i)=>`<span class="phd stg ${x.ws?'ws':''}">${x.ws?'WS':i+1} ▶</span>`).join('')}<span></span>
+      <span class="rl" style="color:#1d4f8f">v</span><span></span>${st.map((_,i)=>cell(i,'v')).join('')}<span class="pu">mm/s</span>
+      <span class="rl" style="color:#c62828">F</span><span></span>${st.map((_,i)=>cell(i,'F')).join('')}<span class="pu">kN</span>
+      <span class="rl">s</span><span class="pc ro">${f2(startPos(k))}</span>${st.map((_,i)=>cell(i,'s')).join('')}<span class="pu">mm</span>
+    </div>
+    <div class="prow2"><button class="dbtn" data-stage="-1">− Stufe</button><button class="dbtn" data-stage="1">+ Stufe</button>
+      <span class="hint">Bewegungszeit: <b>${profTime(k).toFixed(2).replace('.',',')} s</b></span></div>
+  </div>`;
+  if(k==='close'){
+    h+=`<div class="profR"><div class="pgh2">Werkzeug zuhalten</div>
+      <div class="zbar"><div style="height:${pv('P103')/600*100}%"></div><span>${pv('P103')} kN</span></div>
+      ${['P103','P105'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u}</span></div>`).join('')}
+      <div class="pgh2">Überwachung</div>
+      ${['P104','P102'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t==='bool'?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`).join('')}
+      <div class="hint">Zeit in Stufe WS: <b>${wsTime().toFixed(2)} s</b> ${pv('P104')&&wsTime()>pv('P102')?'<span style="color:#c62828">→ überschritten!</span>':''}</div></div>`;
+  } else if(k==='ejB'){
+    h+=`<div class="profR"><div class="pgh2">Zwischenstopp / Rütteln</div>
+      ${['P205','P204','P206'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t==='bool'?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`).join('')}</div>`;
+  } else if(k==='open'){
+    h+=`<div class="profR"><div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Öffnungsweg</b> (${f2(STROKE.open())} mm). Die 1. Stufe ist die Losbrechstufe – langsam fahren, damit das Formteil nicht beschädigt wird.</div></div>`;
+  } else {
+    h+=`<div class="profR"><div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Auswerferweg</b> (${f2(STROKE.ejF())} mm). Langsam anfahren, dann schnell ausstoßen.</div></div>`;
+  }
+  $('vParam').innerHTML=h+'</div>';
+  if(profSel){ const r=rangeOf(profSel.k,profSel.i,profSel.row);
+    $('symInfo').innerHTML=`${profSel.row==='s'?'Ende Stufe':profSel.row==='v'?'Geschwindigkeit Stufe':profSel.row==='F'?'Kraftbegrenzung Stufe':'Verzögerungszeit'}<br><small>${fieldId(profSel.k,profSel.i,profSel.row)} [ ${f2(r.pmin)} - ${f2(r.pmax)} ] [ ${f2(r.min)} - ${f2(r.max)} ]</small>`; }
+  else $('symInfo').textContent='Wert antippen zum Bearbeiten';
+}
+/* Eingabe-Dialog (allgemein) */
+let inp=null;
+function openInput(o){ inp=o;
+  $('kTitle').textContent='Eingabe';
+  $('kRange').innerHTML=`[ ${o.pmin} - ${o.pmax} ] <span style="color:#888">[ ${o.min} - ${o.max} ]</span><div style="margin-top:2px;font-weight:400">${o.label}</div>`;
+  $('kId').textContent=o.id+'='; $('kUnit').textContent=o.u||'';
+  $('kIn').value=''; $('kIn').placeholder=String(o.value); openDlg('dKey'); setTimeout(()=>$('kIn').focus(),30);
+}
+function inputOk(){ if(!inp) return; const raw=$('kIn').value.trim(); if(raw===''){ closeDlg('dKey'); return; }
+  const v=parseFloat(raw.replace(',','.')); if(isNaN(v)){ toast('Ungültige Eingabe'); return; }
+  if(inp.ok(v)!==false) closeDlg('dKey'); }
+function inputNav(d){ if(!inp||!inp.nav) return; inputOk(); inp.nav(d); }
+function editProfCell(c){
+  profSel=c; renderPages(); const r=rangeOf(c.k,c.i,c.row);
+  const cells=cellsOf(c.k), idx=cells.findIndex(x=>x.i===c.i&&x.row===c.row);
+  openInput({id:fieldId(c.k,c.i,c.row), label:PROFDEF[c.k].n, u:r.u, min:f2(r.min), max:f2(r.max), pmin:f2(r.pmin), pmax:f2(r.pmax), value:getCell(c),
+    ok:v=>setCell(c,v), nav:d=>{ const n=cells[(idx+d+cells.length)%cells.length]; editProfCell(n); }});
+}
+
 function dur(t){
   switch(t){
-    case 'mold_close': return pv('P111')/pv('P101') + (pv('P104')?pv('P102'):0);
-    case 'mold_open':  return pv('P111')/pv('P112');
+    case 'mold_close': return profTime('close');
+    case 'mold_open':  return profTime('open');
     case 'inject':     return Math.max(0.05,(pv('P422')-pv('P403'))/pv('P401'));
     case 'hold':       return pv('P412');
     case 'cool':       return pv('P430');
     case 'dose':       return pv('P422')/(0.42*pv('P423')*Math.max(0.2,1-pv('P424')/600)) + (pv('P421')?0.5:0);
     case 'decomp':     return pv('P425')/pv('P426');
     case 'nozzle_fwd': case 'nozzle_back': return pv('P301')/pv('P302');
-    case 'ej_fwd':     return pv('P201')/pv('P202');
-    case 'ej_back':    return pv('P201')/pv('P203');
-    case 'ej_stop':    return Math.max(0.05,(pv('P201')-pv('P205'))/pv('P203'));
-    case 'ej_vib':     return pv('P204')*pv('P201')*0.5*(1/pv('P202')+1/pv('P203'));
+    case 'ej_fwd':     return profTime('ejF');
+    case 'ej_back':    return profTime('ejB');
+    case 'ej_stop':    return Math.max(0.05,(cfg.prof.ejB.delay||0)+travelTime('ejB',STROKE.ejB(),pv('P205')));
+    case 'ej_vib':     return pv('P204')*(travelTime('ejB',STROKE.ejF(),STROKE.ejF()/2)+travelTime('ejF',STROKE.ejF()/2,STROKE.ejF()));
     case 'door_open': case 'door_close': return pv('P601');
     case 'blow_start': return 0.1;
     case 'blow_end':   return pv('P611');
@@ -1427,12 +1633,12 @@ GLYPH.periph=DOOR+`<path d="M24 14l6 4-6 4" fill="none"/>`;
 const PAGESET = [
   {id:'flow', n:'Ablauf', g:'flowp'},
   {id:'mold', n:'Werkzeug', g:'mold_close', subs:[
-    {n:'Werkzeug schließen', g:'mold_close', p:['P101','P103']},
-    {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102']},
-    {n:'Werkzeug öffnen', g:'mold_open', p:['P111','P112']}]},
+    {n:'Werkzeug schließen', g:'mold_close', prof:'close'},
+    {n:'Werkzeug öffnen', g:'mold_open', prof:'open'},
+    {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102','P103','P105']}]},
   {id:'ej', n:'Auswerfer', g:'ej_fwd', subs:[
-    {n:'Auswerfer vor', g:'ej_fwd', p:['P201','P202','P206']},
-    {n:'Auswerfer zurück', g:'ej_back', p:['P203','P205']},
+    {n:'Auswerfer vor', g:'ej_fwd', prof:'ejF'},
+    {n:'Auswerfer zurück', g:'ej_back', prof:'ejB'},
     {n:'Rütteln', g:'ej_vib', p:['P204']}]},
   {id:'noz', n:'Düse', g:'nozzle_fwd', subs:[
     {n:'Düse', g:'nozzle_fwd', p:['P301','P302','P303']}]},
@@ -1473,6 +1679,7 @@ function renderPages(){
   if(isFlow){ renderFlow(); return; }
   if(view==='act'){ renderAct(); return; }
   const S=P.subs[subIdx];
+  if(S.prof){ renderProfile(S.prof); return; }
   let h=`<div class="pgh">${S.n}</div><div class="plist">`;
   S.p.forEach(k=>{ const d=PDEF[k];
     h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
@@ -1522,12 +1729,14 @@ function editParam(k){
   const d=PDEF[k]; selP=k;
   if(d.t==='bool'){ setParam(k,!pv(k)); return; }
   if(d.t==='sel'){ const i=d.opts.indexOf(pv(k)); setParam(k,d.opts[(i+1)%d.opts.length]); return; }
-  $('kTitle').textContent=d.n; $('kRange').textContent=`${k}  [ ${d.min} … ${d.max} ${d.u} ]`;
-  $('kIn').value=String(pv(k)).replace('.',','); openDlg('dKey'); setTimeout(()=>{$('kIn').focus();$('kIn').select();},30);
+  const ks=Object.keys(PDEF).filter(x=>!PDEF[x].t);
+  openInput({id:k,label:d.n,u:d.u,min:d.min,max:d.max,pmin:d.min,pmax:d.max,value:pv(k),ok:v=>setParam(k,v),nav:dd=>{ const P=PAGESET.find(p=>p.id===view); const list=(P&&P.subs&&P.subs[subIdx].p||[]).filter(x=>!PDEF[x].t); if(!list.length) return; const i=list.indexOf(k); editParam(list[(i+dd+list.length)%list.length]); }});
 }
-$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; renderPages(); if(view==='flow') renderAll(); });
-$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; renderPages(); });
+$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
+$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; $('scroll').scrollTop=0; renderPages(); });
 $('vParam').addEventListener('click',e=>{
+  const pc=e.target.closest('.pc:not(.ro)'); if(pc){ editProfCell({k:pc.dataset.k,i:+pc.dataset.i,row:pc.dataset.r}); return; }
+  const sb=e.target.closest('[data-stage]'); if(sb){ const P=PAGESET.find(p=>p.id===view); stageAdd(P.subs[subIdx].prof,+sb.dataset.stage); return; }
   const v=e.target.closest('.pval'); const r=e.target.closest('.prow[data-p]');
   if(v){ editParam(v.dataset.p); return; }
   if(r){ selP=r.dataset.p; renderPages(); }
@@ -1535,10 +1744,10 @@ $('vParam').addEventListener('click',e=>{
 $('pF').onclick=()=>{ if(selP) editParam(selP); else toast('Zuerst Parameter antippen'); };
 $('pN').onclick=()=>{ if(selP && PDEF[selP].t==='bool') setParam(selP,false); else { selP=null; renderPages(); } };
 $('pY').onclick=()=>{ if(!selP) return; if(PDEF[selP].t==='bool') setParam(selP,true); else editParam(selP); };
-$('kKeys').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k, inp=$('kIn');
-  if(k==='C') inp.value=''; else if(k==='<') inp.value=inp.value.slice(0,-1); else inp.value+=k; });
-$('kY').onclick=()=>{ if(setParam(selP,$('kIn').value)) closeDlg('dKey'); };
-$('kIn').addEventListener('keydown',e=>{ if(e.key==='Enter') $('kY').click(); });
+$('kKeys').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const k=b.dataset.k, el=$('kIn');
+  if(k==='<') el.value=el.value.slice(0,-1); else if(k==='neg') el.value=el.value.startsWith('-')?el.value.slice(1):'-'+el.value;
+  else if(k==='prev') inputNav(-1); else if(k==='next') inputNav(1); else if(k==='N') closeDlg('dKey'); else if(k==='Y') inputOk(); else el.value+=k; });
+$('kIn').addEventListener('keydown',e=>{ if(e.key==='Enter') inputOk(); });
 
 /* =====================================================================
    PROZESSANSICHT – Schnitt durch das Werkzeug
