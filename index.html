@@ -149,7 +149,7 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .keys button{height:48px;font-size:20px;border:1px solid #666;border-radius:3px;background:#fff}
 .procbar{display:flex;justify-content:space-between;background:#3d444c;color:#ffd84d;padding:6px 10px;margin-bottom:6px;font-size:15px}
 .dlg.proc{background:rgba(0,0,0,.15)}
-.profwrap{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:10px;padding:8px 10px}
+.profwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px;padding:8px 10px}
 .profL{min-width:0}
 .prow1{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-bottom:6px}
 .prow1 .pn{font-weight:600;margin-right:auto}
@@ -166,7 +166,7 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .prow2{display:flex;gap:8px;align-items:center;margin-top:8px}
 .profR{background:#e4e7ea;border:1px solid #aaa;padding:0 0 8px}
 .pgh2{background:#a9afb4;font-weight:700;padding:4px 8px;margin-bottom:6px}
-.prow3{display:grid;grid-template-columns:1fr 90px 34px;gap:6px;align-items:center;padding:3px 8px;font-size:13px}
+.prow3{display:grid;grid-template-columns:1fr 80px 46px;gap:6px;align-items:center;padding:3px 8px;font-size:13px}
 .prow3 .pval{height:36px;font-size:15px}
 .zbar{height:90px;width:60px;margin:4px auto 8px;border:1px solid #777;background:#fff;position:relative;display:flex;align-items:flex-end}
 .zbar div{width:100%;background:#c62828;opacity:.75}
@@ -192,6 +192,8 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 table.qt td{background:#fff}
 .qd{padding:5px 8px;border-bottom:1px solid #ccc;font-size:13px}
 #scSvg,#tpSvg{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
+.istc{color:#2e7d32!important;border-color:#2e7d32!important;font-weight:700}
+.rl.ist{color:#2e7d32}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -1676,7 +1678,7 @@ const PAGESET = [
     {n:'Nachdruck', g:'hold', gp:'hold'}]},
   {id:'dose', n:'Dosieren', g:'dose', subs:[
     {n:'Auswahl Dosieren', g:'dose', p:['P420','P427']},
-    {n:'Dosieren', g:'dose', gp:'dose'},
+    {n:'Dosieren / Dekomp. / Kühlen', g:'dose', gp:'dose'},
     {n:'Dekompression', g:'decomp', p:['P428','P425','P426'], prev:'screw'},
     {n:'Kühlzeit', g:'cool', p:['P430']}]},
   {id:'tcyl', n:'Temp. Zylinder', g:'thermo', subs:[
@@ -1907,6 +1909,7 @@ function gpSync(){
   let ds=0,nn=0,pp=0,prev=gpStart('dose'); Dd.forEach(x=>{ const d=Math.max(0,x.s-prev); ds+=d; nn+=x.n*d; pp+=x.p*d; prev=x.s; });
   if(ds>0){ cfg.p.P423=+(nn/ds).toFixed(1); cfg.p.P424=Math.round(pp/ds); }
 }
+function torque(st){ const [mn,mx,opt]=MAT[pv('P502')]; const visc=Math.max(0.6,1+(opt-((tIst&&tIst.P513)??pv('P513')))/80); return (60+0.45*st.p+1.8*st.n)*visc; }
 function injTime(){ let t=0,s0=gpStart('inj'); cfg.gp.inj.forEach(x=>{ t+=Math.abs(s0-x.s)/x.v; s0=x.s; }); if(pv('P440')==='Zeit') t=Math.min(t,pv('P442')); return Math.max(0.05,t); }
 function doseTime(){ let t=pv('P427'),prev=gpStart('dose'); cfg.gp.dose.forEach(x=>{ t+=Math.max(0,x.s-prev)/(0.42*x.n*Math.max(0.2,1-x.p/600)); prev=x.s; }); return t; }
 function holdTime(){ return pv('P413')+cfg.gp.hold.reduce((a,x)=>a+x.t,0); }
@@ -1985,15 +1988,25 @@ function renderGP(k){
   const pbtn=pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`;
   const rows=[...D.rows.map(r=>r.k), ...(D.axis==='s'?['s']:[])];
   const idx=[...Array(n).keys()], ord = k==='dose'? idx : idx; // Stufen 1..n
-  let tab=`<div class="ptab" style="grid-template-columns:120px repeat(${n},1fr) 58px"><span></span>${ord.map(i=>`<span class="phd stg">${i+1} ▶</span>`).join('')}<span></span>`;
+  let tab=`<div class="ptab" style="grid-template-columns:150px repeat(${n},1fr) 58px"><span></span>${ord.map(i=>`<span class="phd stg">${i+1} ▶</span>`).join('')}<span></span>`;
   rows.forEach(row=>{ const r=D.rows.find(x=>x.k===row)||{n:k==='inj'?'Ende Stufe (Weg)':'Ende Stufe (Volumen)',u:'cm³',c:'#333'};
     tab+=`<span class="rl" style="color:${r.c};font-size:13px;text-align:left">${r.n}</span>${ord.map(i=>cell(i,row)).join('')}<span class="pu">${r.u}</span>`; });
+  if(actLog.length){ // Istwerte des letzten Zyklus
+    const nz=i=>1+0.012*Math.sin(sim.cycle*12.99+i*78.23);
+    const istRow=(lab,u,fn)=>{ tab+=`<span class="rl ist" style="text-align:left;font-size:12px">Ist ${lab}</span>${ord.map(i=>`<span class="pc ro istc">${fn(i)}</span>`).join('')}<span class="pu">${u}</span>`; };
+    if(k==='dose'){ istRow('v','m/min',i=>(cfg.gp.dose[i].n*nz(i)).toFixed(1)); istRow('p','bar',i=>Math.round(cfg.gp.dose[i].p*nz(i+3))); istRow('V','cm³',i=>(cfg.gp.dose[i].s*nz(i+5)).toFixed(3)); istRow('M','Nm',i=>torque(cfg.gp.dose[i]).toFixed(1)); }
+    if(k==='inj'){ istRow('Q','cm³/s',i=>(cfg.gp.inj[i].v*nz(i)).toFixed(1)); istRow('p','bar',i=>Math.round(Math.min(cfg.gp.inj[i].p,injPressure()*(0.7+0.15*i))*nz(i+2))); }
+    if(k==='hold'){ istRow('p','bar',i=>Math.round(cfg.gp.hold[i].p*nz(i))); }
+  } else tab+=`<span class="hint" style="grid-column:1/-1">Istwerte erscheinen nach dem ersten gefahrenen Zyklus.</span>`;
   tab+='</div>';
   const delay = k==='hold'?pbtn('P413'):k==='dose'?pbtn('P427'):'';
   const side = k==='inj' ? `<div class="pgh2">Einspritzen – Kennwerte</div>${pbtn('P440')}${pbtn('P403')}
       <div class="hint">Einspritzzeit: <b>${injTime().toFixed(2)} s</b><br>Mittlerer Einspritzstrom: <b>${pv('P401')} cm³/s</b><br>Benötigter Spritzdruck: <b>${injPressure()} bar</b> (Grenze ${pv('P402')} bar)</div>`
     : k==='hold' ? `<div class="pgh2">Nachdruck – Kennwerte</div><div class="hint">Nachdruckzeit gesamt: <b>${holdTime().toFixed(2)} s</b><br>Mittlerer Nachdruck: <b>${pv('P411')} bar</b><br>Siegelzeit Anschnitt ≈ <b>${quality().tSeal.toFixed(1)} s</b><br>Massepolster: <b>${Math.max(0,cushionVol()).toFixed(2)} cm³</b></div>`
-    : `<div class="pgh2">Dosieren – Kennwerte</div><div class="hint">Dosierzeit: <b>${doseTime().toFixed(2)} s</b><br>Restkühlzeit: <b>${pv('P430').toFixed(1)} s</b> ${doseTime()>pv('P430')?'<span style="color:#c62828">→ Dosieren länger als Kühlzeit, Zyklus wird verlängert!</span>':'✔'}<br>Mittl. Umfangsgeschw.: <b>${pv('P423')} m/min</b> · Staudruck: <b>${pv('P424')} bar</b></div>`;
+    : `<div class="pgh2">Kühlen</div>${pbtn('P430')}
+       <div class="pgh2">Dekompression</div>${pbtn('P428')}${pbtn('P426')}${pbtn('P425')}
+       <div class="hint">Dekompressionszeit: <b>${dur('decomp').toFixed(2)} s</b> – entlastet die Schmelze, verhindert Austreten an der Düse.</div>
+       <div class="pgh2">Dosieren – Kennwerte</div><div class="hint">Mittl. Drehmoment: <b>${torque({n:pv('P423'),p:pv('P424')}).toFixed(1)} Nm</b></div><div class="hint">Dosierzeit: <b>${doseTime().toFixed(2)} s</b><br>Restkühlzeit: <b>${pv('P430').toFixed(1)} s</b> ${doseTime()>pv('P430')?'<span style="color:#c62828">→ Dosieren länger als Kühlzeit, Zyklus wird verlängert!</span>':'✔'}<br>Mittl. Umfangsgeschw.: <b>${pv('P423')} m/min</b> · Staudruck: <b>${pv('P424')} bar</b></div>`;
   $('vParam').innerHTML=`<div class="pgh">${D.n}</div><div class="profwrap"><div class="profL">
      ${delay?`<div style="max-width:420px;margin-left:auto">${delay}</div>`:''}
      ${gpChart(k)}${tab}
