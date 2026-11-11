@@ -5,81 +5,99 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SGM Zyklus-Trainer – virtuelle Steuerung</title>
 <style>
-:root{
-  --bg:#c9ced3; --panel:#e4e7ea; --head:#5d6670; --headTxt:#fff; --blue:#2f6fbf; --blueL:#4a8ad8;
-  --sel:#2f6fbf; --run:#2e9d4f; --err:#c62828; --warn:#e0a100; --line:#2b2b2b; --btn:#6b747e;
-}
+:root{--bg:#bfc4c8;--frame:#5f666d;--tile:#c9cdd1;--tileB:#8f969c;--blue:#2f73c9;--yellow:#f2c230;--green:#2fae5a;--err:#c62828;--warn:#f2c230}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#1d1d1d;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;font-family:Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#2b2f33;color:#1d1d1d;-webkit-tap-highlight-color:transparent}
 button{font:inherit;cursor:pointer}
-#app{display:flex;flex-direction:column;height:100%}
-#top{display:flex;align-items:center;gap:10px;background:#3d444c;color:#fff;padding:6px 10px}
-#top .brand{font-weight:700;letter-spacing:.3px;white-space:nowrap}
-#top .brand small{font-weight:400;opacity:.75;margin-left:6px}
-#alarm{flex:1;min-width:0;padding:5px 10px;border-radius:3px;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
-#alarm.ok{background:#4b545d}
-#alarm.warn{background:var(--warn);color:#222}
-#alarm.err{background:var(--err)}
-#alarm .tri{display:inline-block;width:18px;text-align:center;font-weight:700}
-.kpis{display:flex;gap:14px;font-size:13px;white-space:nowrap}
-.kpis b{font-size:15px}
-#bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:#7b848d;padding:6px 10px}
-.tb{background:#e9ecef;border:1px solid #555;border-radius:3px;min-width:42px;height:38px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
-.tb:hover{background:#fff}
-.tb.on{background:#ffd54a;border-color:#8a6d00}
-.tb.go{background:#bfe8c9}
-.tb.stop{background:#f4c4c4}
-.tb:disabled{opacity:.45;cursor:default}
-.tb.blink{animation:blink 1s infinite}
-@keyframes blink{50%{background:#ffd54a}}
-.sep{width:1px;height:30px;background:#555;margin:0 4px}
-#bar select{height:38px;font:inherit;border-radius:3px}
-main{flex:1;display:grid;grid-template-columns:1fr 250px;gap:8px;padding:8px;min-height:0}
-#left{overflow:auto;display:flex;flex-direction:column;gap:8px;min-width:0}
-.panel{background:var(--panel);border:1px solid #8c949c;border-radius:3px;display:flex;flex-direction:column;min-width:0}
-.ph{background:#8d959d;color:#fff;font-weight:700;padding:4px 8px;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+#app{display:flex;flex-direction:column;height:100%;max-width:1400px;margin:0 auto;background:var(--frame)}
+#title{display:flex;align-items:center;gap:8px;background:#e9ebed;padding:3px 10px;font-size:13px;color:#333}
+#title .ico{width:14px;height:12px;background:#6b7680;border-radius:2px}
+#head{display:grid;grid-template-columns:auto 1fr auto;gap:4px;padding:4px 4px 0}
+.modes{display:flex;gap:3px;grid-row:span 2}
+.mode{width:62px;height:62px;border:1px solid #333;border-radius:3px;background:var(--tile);display:flex;align-items:center;justify-content:center;font-size:24px;color:#222}
+.mode.y{background:var(--yellow)}
+.mode.g{background:var(--green)}
+.mode.on{outline:3px solid #fff;outline-offset:-4px}
+.mode:disabled{opacity:.45}
+#alarm{display:flex;align-items:center;gap:8px;background:#7a828a;color:#ffd84d;font-weight:600;font-size:15px;padding:3px 10px;border-radius:2px;min-width:0;white-space:nowrap;overflow:hidden}
+#alarm span#alarmTxt{overflow:hidden;text-overflow:ellipsis}
+#alarm.ok{color:#fff}
+#alarm.err{background:#9e2a2a;color:#fff}
+#alarm .tri{font-size:18px}
+.logo{grid-row:span 2;align-self:start;background:#7a828a;color:#e8f5e9;font-weight:800;font-style:italic;letter-spacing:1px;padding:6px 10px;border-radius:2px;font-size:15px;text-align:center;line-height:1.1}
+.logo small{display:block;font-weight:400;font-style:normal;font-size:10px;letter-spacing:0;color:#cfd8dc}
+#vals{display:flex;gap:3px;background:#7a828a;padding:2px;border-radius:2px;color:#fff;font-size:14px;align-items:center;flex-wrap:wrap}
+#vals .v{display:flex;align-items:center;gap:6px;background:#6c747c;padding:2px 8px;border-radius:2px;flex:1;justify-content:space-between;min-width:110px}
+#vals b{font-size:16px}
+#vals .sb{background:#e3e6e9;color:#222;border:1px solid #444;border-radius:2px;height:28px;padding:0 8px;font-size:13px}
+#vals .sb:disabled{opacity:.45}
+#vals .sb.blink{animation:blink 1s infinite}
+@keyframes blink{50%{background:var(--yellow)}}
+#vals select{height:28px;font:inherit;font-size:13px}
+#body{flex:1;display:grid;grid-template-columns:1fr 76px;gap:4px;padding:4px;min-height:0}
+#centre{display:flex;flex-direction:column;min-height:0;min-width:0;background:var(--bg);border:1px solid #444;position:relative}
+.irow{display:flex;gap:4px;padding:4px;background:#a9afb4;border-bottom:1px solid #8a9096;flex-wrap:wrap}
+.pg{width:62px;height:58px;background:var(--tile);border:1px solid var(--tileB);border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;color:#333;padding:2px}
+.pg svg{width:36px;height:36px}
+.pg.on{background:#dfe3e6;box-shadow:inset 0 0 0 2px var(--blue)}
+.ph{background:#a9afb4;font-weight:700;padding:3px 8px;font-size:16px;color:#2f3438;display:flex;justify-content:space-between;align-items:center}
 .ph span{font-weight:400;font-size:12px}
-#flowWrap{overflow:auto;padding:6px;min-height:200px;background:#dfe2e5}
+#scroll{flex:1;overflow:auto;min-height:0}
+#flowWrap{overflow:auto;padding:8px;min-height:230px;background:#d6d9dc}
 #flow{display:block}
 #flow .sym{cursor:pointer}
 #flow .sym rect.box{fill:#fff;stroke-width:1.6}
-#flow .sym.sel rect.box{fill:var(--sel)}
+#flow .sym.sel rect.box{fill:var(--blue)}
 #flow .sym.sel .gl{color:#fff}
 #flow .sym.act rect.box{fill:#bdf0c9}
 #flow .sym.erry rect.box{fill:#ffc9c9}
 #flow .sym.movesrc rect.box{stroke-dasharray:4 3}
-#flow .lbl{font-size:9px;fill:#333;text-anchor:middle}
+#flow .lbl{font-size:9px;fill:#444;text-anchor:middle}
 #flow .gl{color:#1d1d1d}
-#symInfo{padding:4px 8px;font-size:13px;font-weight:600;border-top:1px solid #aab;background:#eef0f2;min-height:24px}
-#mach{display:block;width:100%;height:auto;background:#f3f5f7}
+.sec{display:none;border-top:1px solid #8a9096}
+.sec.show{display:block}
+#mach{display:block;width:100%;height:auto;background:#eef1f3}
 #gantt{display:block;width:100%;background:#fafbfc}
-#msgs{margin:0;padding:6px 10px 8px 26px;font-size:13px;max-height:170px;overflow:auto}
+#msgs{margin:0;padding:6px 10px 8px 26px;font-size:13px;max-height:170px;overflow:auto;background:#eef0f2}
 #msgs li{margin:2px 0}
 #msgs li.e{color:var(--err);font-weight:600}
 #msgs li.w{color:#8a5d00}
 #msgs li.i{color:#2a4f7a}
 #msgs li.ok{color:#2e7d32;list-style:"✔ "}
-aside{background:var(--panel);border:1px solid #8c949c;border-radius:3px;display:flex;flex-direction:column;overflow:auto}
-aside .ph{background:var(--blue)}
-.eb{display:flex;align-items:center;gap:8px;margin:5px 8px;padding:9px 10px;background:#6f7881;color:#fff;border:0;border-radius:3px;text-align:left;font-size:14px}
+#foot{display:flex;align-items:center;gap:8px;background:#e9ebed;border-top:1px solid #999;padding:6px 8px}
+#symInfo{flex:1;font-size:15px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bq{width:54px;height:46px;background:var(--blue);color:#fff;border:1px solid #1d4f8f;border-radius:3px;font-size:22px}
+.bq.on{background:#ffb300;color:#222}
+#side{display:flex;flex-direction:column;gap:4px;background:#8f969c;padding:4px;border:1px solid #444;overflow:auto}
+.sd{width:66px;height:62px;background:var(--tile);border:1px solid #555;border-radius:3px;font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#222;flex-shrink:0}
+.sd small{font-size:9px}
+.sd.y{background:var(--yellow)}
+.sd.on{box-shadow:inset 0 0 0 3px var(--blue)}
+.sd.sp{margin-top:auto}
+/* Ablauf Editieren – schwebendes Fenster */
+#edit{position:absolute;right:8px;top:150px;width:260px;background:#d9dcdf;border:1px solid #445;border-radius:3px;box-shadow:0 6px 20px rgba(0,0,0,.35);display:none;flex-direction:column;z-index:10}
+#edit.open{display:flex}
+#edit .eh{background:var(--blue);color:#fff;padding:7px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+#edit .eh button{background:none;border:0;color:#fff;font-size:22px;line-height:1}
+.eb{display:flex;align-items:center;gap:8px;margin:4px 8px;padding:8px 10px;background:#6f7881;color:#fff;border:1px solid #444;border-radius:3px;text-align:left;font-size:14px}
 .eb:hover{background:#59626b}
 .eb.on{background:#ffb300;color:#222}
-.eb:disabled{opacity:.45}
 .eb i{font-style:normal;width:20px;text-align:center}
+#edit .ef{display:flex;gap:6px;padding:8px}
 .hint{font-size:12px;padding:6px 10px;color:#333;line-height:1.35}
 .pill{display:inline-block;padding:1px 6px;border-radius:9px;background:#d6dbe0;font-size:12px}
 /* Dialoge */
 .dlg{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:20}
 .dlg.open{display:flex}
-.dbox{background:#e8eaed;border:1px solid #556;border-radius:4px;width:min(760px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.dh{background:var(--blue);color:#fff;padding:8px 12px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.dbox{background:#d9dcdf;border:1px solid #556;border-radius:3px;width:min(760px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.dh{background:var(--blue);color:#fff;padding:8px 12px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .dh button{background:none;border:0;color:#fff;font-size:22px;line-height:1}
 .db{padding:10px 12px;overflow:auto}
-.df{padding:8px 12px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #bbb;flex-wrap:wrap;align-items:center}
+.df{padding:8px 12px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #aaa;flex-wrap:wrap;align-items:center}
 .tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
-.tabs button{border:1px solid #777;background:#fff;border-radius:3px;padding:5px 9px;font-size:13px}
+.tabs button{border:1px solid #666;background:#c9cdd1;border-radius:3px;padding:6px 10px;font-size:13px}
 .tabs button.on{background:var(--blue);color:#fff}
-.grid{display:flex;flex-wrap:wrap;gap:6px;background:#d2d6da;padding:8px;border:1px solid #aaa;min-height:90px}
+.grid{display:flex;flex-wrap:wrap;gap:6px;background:#c3c8cc;padding:8px;border:1px solid #999;min-height:90px}
 .pick{width:66px;display:flex;flex-direction:column;align-items:center;gap:2px;border:1px solid #888;background:#fff;border-radius:3px;padding:4px 2px;font-size:10px;text-align:center;line-height:1.1}
 .pick.on{background:var(--blue);color:#fff}
 .pick.on svg{color:#fff}
@@ -89,9 +107,9 @@ aside .ph{background:var(--blue)}
 .dbtn.pri{background:var(--blue);color:#fff;border-color:#1d4f8f}
 .dbtn:disabled{opacity:.4}
 table.cfg{border-collapse:collapse;width:100%;font-size:14px}
-table.cfg td{padding:4px 6px;border-bottom:1px solid #ccc}
+table.cfg td{padding:4px 6px;border-bottom:1px solid #bbb}
 table.cfg input[type=number]{width:80px;font:inherit}
-fieldset{border:1px solid #aaa;border-radius:3px;margin:0 0 10px;padding:6px 10px}
+fieldset{border:1px solid #999;border-radius:3px;margin:0 0 10px;padding:6px 10px}
 legend{font-weight:700;font-size:14px}
 label.r{display:block;padding:3px 0;font-size:14px}
 .task{border:1px solid #aaa;background:#fff;border-radius:3px;padding:8px 10px;margin-bottom:8px}
@@ -107,86 +125,81 @@ label.r{display:block;padding:3px 0;font-size:14px}
 .ans.show{display:block}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
-@media (max-width:900px){
-  main{grid-template-columns:1fr}
-  aside{order:-1;flex-direction:row;flex-wrap:wrap}
-  aside .ph{width:100%}
-  .eb{margin:3px;flex:1 1 140px}
-  .hint{display:none}
-  .kpis{display:none}
+@media (max-width:800px){
+  .mode{width:48px;height:48px;font-size:18px}
+  .logo{display:none}
+  #head{grid-template-columns:auto 1fr}
+  .pg{width:50px;height:48px}
+  .pg svg{width:28px;height:28px}
+  #body{grid-template-columns:1fr 58px}
+  .sd{width:50px;height:50px;font-size:18px}
+  #edit{left:8px;right:8px;width:auto;top:60px}
 }
 </style>
 </head>
 <body>
 <div id="app">
-  <header id="top">
-    <div class="brand">SGM Zyklus-Trainer<small id="machName"></small></div>
-    <div id="alarm" class="ok"><span class="tri">i</span><span id="alarmTxt">Bereit</span></div>
-    <div class="kpis">
-      <span>Zykluszeit <b id="kCycle">0,00 s</b></span>
-      <span>Ist <b id="kIst">0,00 s</b></span>
-      <span>Teile <b id="kParts">0</b></span>
+  <div id="title"><span class="ico"></span><span>SGM-Trainer extern <span id="machName"></span></span></div>
+  <div id="head">
+    <div class="modes">
+      <button class="mode" id="bReset" title="Einrichten / Grundstellung, Alarme quittieren">⌂</button>
+      <button class="mode y" id="bSingle" title="Halbautomatik – 1 Zyklus">▽</button>
+      <button class="mode g" id="bAuto" title="Automatik">⟳</button>
     </div>
-  </header>
-
-  <div id="bar">
-    <button class="tb" id="bSingle" title="Ein Zyklus (Halbautomatik)">▶ 1 Zyklus</button>
-    <button class="tb" id="bAuto" title="Automatikbetrieb">⟳ Automatik</button>
-    <button class="tb stop" id="bStop" title="Stopp am Zyklusende / sofort">■ Stopp</button>
-    <button class="tb" id="bNext" title="Nach Zwischenstopp weiterfahren" disabled>⏵ Weiter</button>
-    <button class="tb" id="bReset" title="Grundstellung, Alarme quittieren">⌂ Grundstellung</button>
-    <select id="speed" title="Simulationsgeschwindigkeit">
-      <option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option>
-    </select>
-    <span class="sep"></span>
-    <button class="tb" id="bMachine" title="Maschine / Werkzeug / Zeiten">⚙ Maschine</button>
-    <button class="tb" id="bTasks" title="Aufgaben vom Arbeitsblatt">📋 Aufgaben</button>
-    <button class="tb" id="bHelp" title="Hilfe">?</button>
-    <span class="sep"></span>
-    <button class="tb" id="bExport" title="Ablauf als Datei speichern">⭳ Export</button>
-    <button class="tb" id="bImport" title="Ablauf aus Datei laden">⭱ Import</button>
-    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    <div id="alarm" class="ok"><span class="tri">⚠</span><span id="alarmTxt">Bereit</span></div>
+    <div class="logo">SGM&#8209;TRAINER<small>virtuelle Steuerung</small></div>
+    <div id="vals">
+      <button class="sb" id="bStop" title="Stopp">■ Stopp</button>
+      <button class="sb" id="bNext" title="Nach Zwischenstopp weiter" disabled>⏵ Weiter</button>
+      <select id="speed" title="Simulationsgeschwindigkeit"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select>
+      <span class="v" title="Zykluszeit (berechnet)">Zyklus <b id="kCycle">0,00 s</b></span>
+      <span class="v" title="Ist-Zeit">Ist <b id="kIst">0,00 s</b></span>
+      <span class="v" title="Gutteile">Teile <b id="kParts">0</b></span>
+    </div>
   </div>
 
-  <main>
-    <div id="left">
-      <div class="panel">
+  <div id="body">
+    <div id="centre">
+      <div class="irow" id="pages1"></div>
+      <div id="scroll">
         <div class="ph">Produktionsablauf Maschine <span id="flowMode"></span></div>
         <div id="flowWrap"><svg id="flow"></svg></div>
+        <div class="sec show" id="secMach"><div class="ph">Maschine <span id="machState"></span></div><svg id="mach" viewBox="0 0 900 270"></svg></div>
+        <div class="sec show" id="secGantt"><div class="ph">Zeitdiagramm <span id="tInfo"></span></div><svg id="gantt"></svg></div>
+        <div class="sec show" id="secMsg"><div class="ph">Meldungen</div><ul id="msgs"></ul></div>
+      </div>
+      <div id="foot">
         <div id="symInfo">Symbol: –</div>
+        <button class="bq" id="bTasks" title="Aufgaben">⚑</button>
+        <button class="bq" id="bEdit" title="Ablauf editieren">✎</button>
       </div>
-      <div class="panel">
-        <div class="ph">Maschine <span id="machState"></span></div>
-        <svg id="mach" viewBox="0 0 900 270"></svg>
-      </div>
-      <div class="panel">
-        <div class="ph">Zeitdiagramm (Zyklus) <span id="tInfo"></span></div>
-        <svg id="gantt"></svg>
-      </div>
-      <div class="panel">
-        <div class="ph">Meldungen / Plausibilitätsprüfung</div>
-        <ul id="msgs"></ul>
+
+      <div id="edit">
+        <div class="eh"><span>✎ Ablauf Editieren</span><button id="editClose">×</button></div>
+        <button class="eb" id="eIns"><i>＋</i>Symbol einfügen</button>
+        <button class="eb" id="eMove"><i>✥</i>Symbol verschieben</button>
+        <button class="eb" id="eDel"><i>✕</i>Symbol löschen</button>
+        <button class="eb" id="eCond"><i>⇅</i>Startbedingung ändern</button>
+        <button class="eb" id="eDrive"><i>⚙</i>Antrieb umschalten</button>
+        <button class="eb" id="eBranch"><i>⇥</i>Zweigende verschieben</button>
+        <button class="eb" id="eBase"><i>⌂</i>Grundablauf</button>
+        <button class="eb" id="eUndo"><i>↶</i>Rückgängig</button>
+        <div class="hint" id="editHint">Symbol antippen = markieren. Einfügen: seriell danach oder parallel dazu.</div>
       </div>
     </div>
 
-    <aside>
-      <div class="ph">✎ Ablauf editieren</div>
-      <button class="eb" id="eIns"><i>＋</i>Symbol einfügen</button>
-      <button class="eb" id="eMove"><i>✥</i>Symbol verschieben</button>
-      <button class="eb" id="eDel"><i>✕</i>Symbol löschen</button>
-      <button class="eb" id="eCond"><i>⇅</i>Startbedingung ändern</button>
-      <button class="eb" id="eDrive"><i>⚙</i>Antrieb umschalten</button>
-      <button class="eb" id="eBranch"><i>⇥</i>Zweigende verschieben</button>
-      <button class="eb" id="eBase"><i>⌂</i>Grundablauf</button>
-      <button class="eb" id="eUndo"><i>↶</i>Rückgängig</button>
-      <div class="hint" id="editHint">
-        Symbol antippen = markieren.<br>
-        <b>Einfügen:</b> markiertes Symbol wählen → neues Symbol <i>seriell danach</i> oder <i>parallel dazu</i>.<br>
-        <b>Startbedingung:</b> schaltet ein Symbol zwischen seriell und parallel um.<br>
-        <b>Zweigende:</b> verschiebt die Zusammenführung des Parallelzweigs.
-      </div>
-    </aside>
-  </main>
+    <div id="side">
+      <button class="sd" id="sMach" title="Maschinenansicht ein/aus">▣<small>Maschine</small></button>
+      <button class="sd" id="sGantt" title="Zeitdiagramm ein/aus">▤<small>Zeiten</small></button>
+      <button class="sd y" id="sMsg" title="Meldungen ein/aus">⚠<small>Meldungen</small></button>
+      <button class="sd y" id="bMachine" title="Maschine / Werkzeug / Zeiten">⚙<small>Einstellen</small></button>
+      <button class="sd y" id="bExport" title="Ablauf speichern">⭳<small>Export</small></button>
+      <button class="sd" id="bImport" title="Ablauf laden">⭱<small>Import</small></button>
+      <input type="file" id="fileIn" accept=".json,application/json" hidden>
+      <button class="sd sp" id="sBack" title="Markierung aufheben">←</button>
+      <button class="sd" id="bHelp" title="Hilfe">i</button>
+    </div>
+  </div>
 </div>
 
 <!-- Dialog: Neues Symbol -->
@@ -284,7 +297,7 @@ const SYM = {
   blow_start: {n:'Ausblasventil 1 Start',      s:'Blasen 1 ▸',g:'valve', d:0.1, res:['blow'],         hyd:false, row:'valve'},
   blow_end:   {n:'Ausblasventil 1 Ende',       s:'Blasen 1 ■',g:'valve', d:0.8, res:['blow'],         hyd:false, row:'valve'},
   mon1_start: {n:'Überwachung 1 Start (z. B. Ausdrehkern ausdrehen)',s:'Überw.1 ▸',g:'mon',d:1.5,res:['core'],hyd:true,row:'core'},
-  mon1_end:   {n:'Überwachung 1 Ende (z. B. Ausdrehkern eindrehen)', s:'Überw.1 ■',g:'mon',d:1.5,res:['core'],hyd:true,row:'core'},
+  mon1_end:   {n:'Überwachung 1 Stopp (z. B. Ausdrehkern eindrehen)', s:'Überw.1 ■',g:'mon',d:1.5,res:['core'],hyd:true,row:'core'},
 };
 const DEF_DUR = Object.fromEntries(Object.entries(SYM).map(([k,v])=>[k,v.d]));
 const GROUPS = [
@@ -380,7 +393,7 @@ const TASKS = [
   {id:'7',  t:'Aufgabe 7', txt:'Es wurde ein Werkzeug mit Stangenanguss eingebaut. Um ein Abkühlen der Düse zu vermeiden, müssen nun Düsenbewegungen programmiert werden (Düse vor nach dem Schließen, Düse zurück parallel zum Dosieren).', sol:'mold_close;nozzle_fwd;inject;hold;cool|dose,nozzle_back;mold_open;ej_fwd;ej_vib;ej_back', from:'2', tool:{stickEj:true,sprue:true}},
   {id:'7b', t:'Aufgabe 7 – schneller', txt:'Für schnelleren Zyklus – gleichzeitige Bewegung: Düse vor parallel zum Werkzeug schließen.', sol:'mold_close|nozzle_fwd;inject;hold;cool|dose,nozzle_back;mold_open;ej_fwd;ej_vib;ej_back', from:'7', tool:{stickEj:true,sprue:true}},
   {id:'8',  t:'Aufgabe 8', txt:'Da nun bei abgehobener Düse Kunststoff aus der Düse austritt, muss nun eine Dekompression programmiert werden.', sol:'mold_close;nozzle_fwd;inject;hold;cool|dose,decomp,nozzle_back;mold_open;ej_fwd;ej_vib;ej_back', from:'7', tool:{stickEj:true,sprue:true}},
-  {id:'k1', t:'Ausdrehkern – Ablauf 1', core:true, txt:'Werkzeug mit Ausdrehkern (Gewinde), keine Kernzugsteuerung → Symbole „Überwachung 1 Start / Ende“ verwenden. Ausdrehkern VOR Werkzeug schließen ausdrehen und NACH Werkzeug öffnen eindrehen.', sol:'mon1_start|nozzle_fwd;mold_close;inject;hold;cool|dose,decomp,nozzle_back;mold_open;mon1_end;ej_fwd;ej_vib;ej_back', from:'8', tool:{stickEj:true,sprue:true,core:true}},
+  {id:'k1', t:'Ausdrehkern – Ablauf 1', core:true, txt:'Werkzeug mit Ausdrehkern (Gewinde), keine Kernzugsteuerung → Symbole „Überwachung 1 Start / Stopp“ verwenden. Ausdrehkern VOR Werkzeug schließen ausdrehen und NACH Werkzeug öffnen eindrehen.', sol:'mon1_start|nozzle_fwd;mold_close;inject;hold;cool|dose,decomp,nozzle_back;mold_open;mon1_end;ej_fwd;ej_vib;ej_back', from:'8', tool:{stickEj:true,sprue:true,core:true}},
   {id:'k2', t:'Ausdrehkern – Ablauf 2', core:true, txt:'Ausdrehkern PARALLEL mit Werkzeug schließen ausdrehen und VOR Werkzeug öffnen eindrehen.', sol:'mold_close|nozzle_fwd,mon1_start;inject;hold;cool|dose,decomp,nozzle_back;mon1_end;mold_open;ej_fwd;ej_vib;ej_back', from:'8', tool:{stickEj:true,sprue:true,core:true}},
   {id:'k3', t:'Ausdrehkern – Ablauf 3', core:true, txt:'Ausdrehkern PARALLEL mit Werkzeug schließen ausdrehen und PARALLEL mit Werkzeug öffnen eindrehen.', sol:'mold_close|nozzle_fwd,mon1_start;inject;hold;cool|dose,decomp,nozzle_back;mold_open|mon1_end;ej_fwd;ej_vib;ej_back', from:'8', tool:{stickEj:true,sprue:true,core:true}},
   {id:'k4', t:'Ausdrehkern – Ablauf 4', core:true, txt:'Ausdrehkern PARALLEL mit Werkzeug schließen ausdrehen und NACH Werkzeug öffnen eindrehen.', sol:'mold_close|nozzle_fwd,mon1_start;inject;hold;cool|dose,decomp,nozzle_back;mold_open;mon1_end;ej_fwd;ej_vib;ej_back', from:'8', tool:{stickEj:true,sprue:true,core:true}},
@@ -681,7 +694,7 @@ function plausibility(sch){
   if(tool.insert && !has('ej_stop')) res.warn.push({msg:'Einlegeteile: kein Zwischenstopp zum Einlegen programmiert.'});
   if(tool.insert && has('ej_stop') && !has('door_open')) res.info.push('Zwischenstopp: Bediener öffnet die Schutztür von Hand, legt ein und schließt wieder. (Aufgabe 4: automatisch!)');
   if(tool.sprue && !has('nozzle_back')) res.warn.push({msg:'Stangenanguss: Düse bleibt dauerhaft angelegt → Düse kühlt ab. Düse zurück programmieren.'});
-  if(tool.core && !(has('mon1_start')&&has('mon1_end'))) res.warn.push({msg:'Ausdrehkern wird nicht angesteuert → Überwachung 1 Start und Ende programmieren.'});
+  if(tool.core && !(has('mon1_start')&&has('mon1_end'))) res.warn.push({msg:'Ausdrehkern wird nicht angesteuert → Überwachung 1 Start und Stopp programmieren.'});
   // Doppelte Warnungen entfernen
   const seen=new Set(); res.warn=res.warn.filter(w=>!seen.has(w.msg)&&seen.add(w.msg));
   return res;
@@ -1029,7 +1042,7 @@ function updateKPI(){
 function setAlarm(type,txt){
   sim.alarm={type,txt};
   const a=document.getElementById('alarm'); a.className=type;
-  a.querySelector('.tri').textContent= type==='err'?'⚠':type==='warn'?'!':'i';
+  a.querySelector('.tri').textContent= type==='ok'?'ⓘ':'⚠';
   document.getElementById('alarmTxt').textContent=txt;
 }
 function updateButtons(){
@@ -1038,10 +1051,11 @@ function updateButtons(){
   document.getElementById('bAuto').classList.toggle('on',run&&sim.auto);
   document.getElementById('bNext').disabled=!sim.paused;
   document.getElementById('bNext').classList.toggle('blink',sim.paused);
+  document.getElementById('bReset').classList.toggle('on',!run);
 }
 function renderAll(){
   renderFlow(); renderMachine(); renderGantt(); renderMsgs(); updateKPI(); updateButtons();
-  document.getElementById('machName').textContent=` Maschine ${cfg.machNo} · ${cfg.machType}`;
+  document.getElementById('machName').textContent=`${cfg.machType} · Nr. ${cfg.machNo}`;
   document.getElementById('eMove').classList.toggle('on',!!moveSrc);
 }
 
@@ -1250,6 +1264,20 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='Escape'){ moveSrc=null; sel=null; renderAll(); }
 });
 window.addEventListener('resize',()=>{ renderGantt(); });
+
+/* Seitenleiste / Seitenkacheln */
+const PAGES=[['mold_close','Werkzeug'],['ej_fwd','Auswerfer'],['nozzle_fwd','Düse'],['inject','Einspritzen'],['hold','Nachdruck'],['dose','Dosieren'],['cool','Kühlen'],['door_open','Schutztür'],['blow_start','Ventile'],['mon1_start','Überw. 1']];
+$('pages1').innerHTML=PAGES.map(([t,n])=>`<button class="pg" data-t="${t}" title="${n}: Zeiten einstellen">${glyphSVG(t,36)}<span>${n}</span></button>`).join('');
+$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; renderMach(); openDlg('dMach');
+  setTimeout(()=>{ const el=document.querySelector(`[data-dur="${b.dataset.t}"]`); if(el){ el.scrollIntoView({block:'center'}); el.focus(); } },50); });
+function toggleSec(btn,sec){ const s=$(sec); s.classList.toggle('show'); $(btn).classList.toggle('on',s.classList.contains('show')); if(sec==='secGantt') renderGantt(); }
+$('sMach').onclick=()=>toggleSec('sMach','secMach');
+$('sGantt').onclick=()=>toggleSec('sGantt','secGantt');
+$('sMsg').onclick=()=>toggleSec('sMsg','secMsg');
+['sMach','sGantt','sMsg'].forEach(id=>$(id).classList.add('on'));
+$('sBack').onclick=()=>{ moveSrc=null; sel=null; renderAll(); };
+$('bEdit').onclick=()=>{ $('edit').classList.toggle('open'); $('bEdit').classList.toggle('on',$('edit').classList.contains('open')); };
+$('editClose').onclick=()=>{ $('edit').classList.remove('open'); $('bEdit').classList.remove('on'); };
 
 /* Start */
 load();
