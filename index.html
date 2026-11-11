@@ -248,6 +248,12 @@ label.r{display:block;padding:3px 0;font-size:14px}
   <div class="df"><button class="dbtn pri" data-close>OK</button></div>
 </div></div>
 
+<div class="dlg" id="dConf"><div class="dbox" style="width:min(420px,94vw)">
+  <div class="dh"><span>Bestätigen</span><button data-close>×</button></div>
+  <div class="db" id="confTxt"></div>
+  <div class="df"><button class="dbtn" data-close>Abbrechen</button><button class="dbtn pri" id="confOk">OK</button></div>
+</div></div>
+
 <div id="toast"></div>
 
 <script>
@@ -528,8 +534,7 @@ function opBranch(dir){
   changed();
 }
 function opBase(){
-  if(!confirm('Grundablauf laden? Der aktuelle Ablauf wird ersetzt.')) return;
-  pushUndo(); prog=parse(GRUND); sel=null; changed();
+  ask('Grundablauf laden? Der aktuelle Ablauf wird ersetzt.',()=>{ pushUndo(); prog=parse(GRUND); sel=null; changed(); });
 }
 function opUndo(){
   if(!undoStack.length){toast('Nichts rückgängig zu machen.');return;}
@@ -1049,6 +1054,7 @@ function closeDlg(id){ $(id).classList.remove('open'); }
 document.querySelectorAll('.dlg').forEach(d=>{
   d.addEventListener('click',e=>{ if(e.target===d || e.target.hasAttribute('data-close')) d.classList.remove('open'); });
 });
+function ask(txt,fn){ $('confTxt').textContent=txt; $('confOk').onclick=()=>{closeDlg('dConf'); fn();}; openDlg('dConf'); }
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
 
 // --- Einfügen ---
@@ -1155,10 +1161,10 @@ $('taskBody').addEventListener('click',e=>{
     const el=$('res_'+t.id.replace('.','_')); el.className='res '+(r.ok?'ok':'bad'); el.textContent=r.msg;
     if(r.ok) setTimeout(renderTasks,1200);
   } else if(act==='sol'){
-    if(!confirm('Lösung laden? Der aktuelle Ablauf wird ersetzt.')) return;
-    pushUndo(); curTask=t.id; prog=parse(t.sol); sel=null;
-    cfg.tool={stickEj:false,stickNozzle:false,insert:false,sprue:false,core:false,...t.tool};
-    resetSim(); changed(); closeDlg('dTasks');
+    ask('Lösung laden? Der aktuelle Ablauf wird ersetzt.',()=>{
+      pushUndo(); curTask=t.id; prog=parse(t.sol); sel=null;
+      cfg.tool={stickEj:false,stickNozzle:false,insert:false,sprue:false,core:false,...t.tool};
+      resetSim(); changed(); closeDlg('dTasks'); });
   }
 });
 
@@ -1224,7 +1230,8 @@ $('bTasks').onclick=()=>{ renderTasks(); openDlg('dTasks'); };
 $('bHelp').onclick=()=>openDlg('dHelp');
 $('bExport').onclick=()=>{
   const blob=new Blob([JSON.stringify({version:1,cfg,ablauf:toDSL(prog)},null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ablauf_'+cfg.machNo+'.json'; a.click(); URL.revokeObjectURL(a.href);
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ablauf_'+cfg.machNo+'.json'; a.click();
+  try{ navigator.clipboard.writeText(JSON.stringify({version:1,cfg,ablauf:toDSL(prog)})).then(()=>toast('Ablauf gespeichert / in Zwischenablage kopiert'),()=>{}); }catch(e){}
 };
 $('bImport').onclick=()=>$('fileIn').click();
 $('fileIn').onchange=e=>{
