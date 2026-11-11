@@ -1526,13 +1526,23 @@ function f2(v){ return (+v).toFixed(2); }
 /* Stufen als Linie mit Markierungen am Stufenbeginn */
 function stepLine(pts,col,base,opt={}){
   if(!pts.length) return '';
-  let d=`M${opt.x0??pts[0].x1} ${opt.y0??base}`; if(opt.y0===undefined) d+=`V${pts[0].y}`; else d+=`L${pts[0].x1} ${pts[0].y}`;
-  pts.forEach((q,i)=>{ if(i>0) d+=`V${q.y}`; d+=`H${q.x2}`; });
-  if(opt.drop) d+=`V${base}`;
-  let o=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round"/>`;
-  pts.forEach(q=>{ if(q.lbl===null) return;
-    o+=`<line x1="${q.x1}" y1="${q.y-7}" x2="${q.x1}" y2="${q.y+7}" stroke="${col}" stroke-width="2"/><circle cx="${q.x1}" cy="${q.y}" r="3.5" fill="#fff" stroke="${col}" stroke-width="2"/>
-        <text x="${(q.x1+q.x2)/2}" y="${q.y-6}" font-size="10" font-weight="700" fill="${col}" text-anchor="middle">${q.lbl}</text>`; });
+  const dir=Math.sign(pts[0].x2-pts[0].x1)||1;
+  const R=i=>Math.max(2,Math.min(14,Math.abs(pts[i].x2-pts[i].x1)/3));      // Übergangsbreite
+  const sx=opt.x0??pts[0].x1, sy=opt.y0??base;
+  let d=`M${sx} ${sy}`;
+  // weicher Anstieg auf die 1. Stufe
+  { const r=R(0); d+=`C${pts[0].x1} ${sy} ${pts[0].x1} ${pts[0].y} ${pts[0].x1+dir*r} ${pts[0].y}`; }
+  pts.forEach((q,i)=>{
+    const nx=pts[i+1];
+    if(nx){ const r=Math.min(R(i),R(i+1)); const xb=q.x2;
+      d+=`L${xb-dir*r} ${q.y}C${xb} ${q.y} ${xb} ${nx.y} ${xb+dir*r} ${nx.y}`; }
+    else if(opt.drop){ const r=R(i); d+=`L${q.x2-dir*r} ${q.y}C${q.x2} ${q.y} ${q.x2} ${base} ${q.x2+dir*Math.min(r,6)} ${base}`; }
+    else d+=`L${q.x2} ${q.y}`;
+  });
+  let o=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((q,i)=>{ if(q.lbl===null) return; const x=q.x1+dir*R(i);
+    o+=`<line x1="${x}" y1="${q.y-6}" x2="${x}" y2="${q.y+6}" stroke="${col}" stroke-width="2"/><circle cx="${x}" cy="${q.y}" r="3.5" fill="#fff" stroke="${col}" stroke-width="2"/>
+        <text x="${(q.x1+q.x2)/2}" y="${q.y-7}" font-size="10" font-weight="700" fill="${col}" text-anchor="middle">${q.lbl}</text>`; });
   return o;
 }
 function profChart(k){
