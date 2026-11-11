@@ -182,6 +182,15 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .keys button.kb svg{width:28px;height:28px}
 .keys button.big{font-size:28px}
 @media (max-width:800px){.profwrap{grid-template-columns:1fr}}
+#pvSvg{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
+.pvbox{background:#e4e7ea;border:1px solid #aaa;margin-bottom:10px}
+#pvTxt{min-height:20px;font-weight:600}
+.ppic{width:100%;max-width:440px;height:auto;display:block;border:1px solid #aaa;margin:6px auto}
+.qres{font-size:20px;font-weight:700;padding:6px 10px;border-radius:3px}
+.qres.ok{background:#c8e6c9;color:#1b5e20}
+.qres.bad{background:#ffcdd2;color:#b71c1c}
+table.qt td{background:#fff}
+.qd{padding:5px 8px;border-bottom:1px solid #ccc;font-size:13px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -927,6 +936,7 @@ function tick(now){
     }
   }
   if(sim.running || sim.paused) { renderMachine(); renderFlowState(); renderGanttCursor(); updateKPI(); renderProcess(); }
+  renderPreview(now);
   requestAnimationFrame(tick);
 }
 
@@ -1511,7 +1521,7 @@ function f2(v){ return (+v).toFixed(2); }
 function profChart(k){
   const P=cfg.prof[k], W=520, H=190, L=48, R=40, T=14, B=26;
   const segs=segments(k); const s0=startPos(k), s1= (k==='close'||k==='ejB')?0:STROKE[k]();
-  const X=s=>L+(W-L-R)*Math.abs(s-s0)/Math.max(1e-6,Math.abs(s1-s0));
+  const fx=s=>Math.abs(s-s0)/Math.max(1e-6,Math.abs(s1-s0)); const X=s=>L+(W-L-R)*(RTL(k)?1-fx(s):fx(s));
   const vmax=Math.max(...P.st.map(x=>x.v))*1.15, fmax=P.fmax;
   const Yv=v=>H-B-(H-B-T)*v/vmax, Yf=f=>H-B-(H-B-T)*f/fmax;
   let o=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-B-T}" fill="#f4f6f7" stroke="#888"/>`;
@@ -1521,10 +1531,28 @@ function profChart(k){
   o+=`<path d="${fp}" stroke="#c62828" stroke-width="2" fill="none"/>`;
   o+=`<text x="${L-4}" y="${T+10}" font-size="11" fill="#1d4f8f" text-anchor="end">${Math.round(vmax)}</text><text x="${L-4}" y="${T+22}" font-size="10" fill="#1d4f8f" text-anchor="end">mm/s</text>`;
   o+=`<text x="${W-R+4}" y="${T+10}" font-size="11" fill="#c62828">${fmax}</text><text x="${W-R+4}" y="${T+22}" font-size="10" fill="#c62828">kN</text>`;
-  o+=`<text x="${L}" y="${H-8}" font-size="11" fill="#333">${f2(s0)}</text><text x="${W-R}" y="${H-8}" font-size="11" fill="#333" text-anchor="end">${f2(s1)} mm</text>`;
+  const a0=RTL(k)?s1:s0, a1=RTL(k)?s0:s1;
+  o+=`<text x="${L}" y="${H-8}" font-size="11" fill="#333">${f2(a0)}</text><text x="${W-R}" y="${H-8}" font-size="11" fill="#333" text-anchor="end">${f2(a1)} mm</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" class="pchart">${o}</svg>`;
 }
 let profSel=null;
+const RTL = k => k==='open' || k==='ejB';
+function profTable(k,cell){
+  const st=cfg.prof[k].st, n=st.length, ic=glyphSVG(k==='close'?'mold_close':k==='open'?'mold_open':k==='ejF'?'ej_fwd':'ej_back',26);
+  const idx=[...Array(n).keys()]; const startC=`<span class="pc ro">${f2(startPos(k))}</span>`;
+  const hd=i=>`<span class="phd stg ${st[i].ws?'ws':''}">${RTL(k)?'◀ ':''}${st[i].ws?'WS':i+1}${RTL(k)?'':' ▶'}</span>`;
+  if(!RTL(k)) return `<div class="ptab" style="grid-template-columns:34px 80px repeat(${n},1fr) 46px">
+      <span></span><span class="phd">${ic}</span>${idx.map(hd).join('')}<span></span>
+      <span class="rl" style="color:#1d4f8f">v</span><span></span>${idx.map(i=>cell(i,'v')).join('')}<span class="pu">mm/s</span>
+      <span class="rl" style="color:#c62828">F</span><span></span>${idx.map(i=>cell(i,'F')).join('')}<span class="pu">kN</span>
+      <span class="rl">s</span>${startC}${idx.map(i=>cell(i,'s')).join('')}<span class="pu">mm</span></div>`;
+  const r=idx.slice().reverse();
+  return `<div class="ptab" style="grid-template-columns:34px 46px repeat(${n},1fr) 80px">
+      <span></span><span></span>${r.map(hd).join('')}<span class="phd">${ic}</span>
+      <span class="rl" style="color:#1d4f8f">v</span><span class="pu">mm/s</span>${r.map(i=>cell(i,'v')).join('')}<span></span>
+      <span class="rl" style="color:#c62828">F</span><span class="pu">kN</span>${r.map(i=>cell(i,'F')).join('')}<span></span>
+      <span class="rl">s</span><span class="pu">mm</span>${r.map(i=>cell(i,'s')).join('')}${startC}</div>`;
+}
 function renderProfile(k){
   const P=cfg.prof[k], st=P.st;
   const cell=(i,row)=>{ const c={k,i,row}; const id=fieldId(k,i,row); const on=profSel&&profSel.k===k&&profSel.i===i&&profSel.row===row;
@@ -1532,30 +1560,25 @@ function renderProfile(k){
   let h=`<div class="pgh">${P.n}</div><div class="profwrap"><div class="profL">
     <div class="prow1"><span class="pn">Verzögerungszeit</span>${cell(0,'d')}<span class="pu">s</span></div>
     ${profChart(k)}
-    <div class="ptab" style="grid-template-columns:34px 80px repeat(${st.length},1fr) 46px">
-      <span></span><span class="phd">${glyphSVG(k==='close'?'mold_close':k==='open'?'mold_open':k==='ejF'?'ej_fwd':'ej_back',26)}</span>
-      ${st.map((x,i)=>`<span class="phd stg ${x.ws?'ws':''}">${x.ws?'WS':i+1} ▶</span>`).join('')}<span></span>
-      <span class="rl" style="color:#1d4f8f">v</span><span></span>${st.map((_,i)=>cell(i,'v')).join('')}<span class="pu">mm/s</span>
-      <span class="rl" style="color:#c62828">F</span><span></span>${st.map((_,i)=>cell(i,'F')).join('')}<span class="pu">kN</span>
-      <span class="rl">s</span><span class="pc ro">${f2(startPos(k))}</span>${st.map((_,i)=>cell(i,'s')).join('')}<span class="pu">mm</span>
-    </div>
+    ${profTable(k,cell)}
     <div class="prow2"><button class="dbtn" data-stage="-1">− Stufe</button><button class="dbtn" data-stage="1">+ Stufe</button>
       <span class="hint">Bewegungszeit: <b>${profTime(k).toFixed(2).replace('.',',')} s</b></span></div>
   </div>`;
+  const PV=`<div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
   if(k==='close'){
-    h+=`<div class="profR"><div class="pgh2">Werkzeug zuhalten</div>
+    h+=`<div class="profR">${PV}<div class="pgh2">Werkzeug zuhalten</div>
       <div class="zbar"><div style="height:${pv('P103')/600*100}%"></div><span>${pv('P103')} kN</span></div>
       ${['P103','P105'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u}</span></div>`).join('')}
       <div class="pgh2">Überwachung</div>
       ${['P104','P102'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t==='bool'?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`).join('')}
       <div class="hint">Zeit in Stufe WS: <b>${wsTime().toFixed(2)} s</b> ${pv('P104')&&wsTime()>pv('P102')?'<span style="color:#c62828">→ überschritten!</span>':''}</div></div>`;
   } else if(k==='ejB'){
-    h+=`<div class="profR"><div class="pgh2">Zwischenstopp / Rütteln</div>
+    h+=`<div class="profR">${PV}<div class="pgh2">Zwischenstopp / Rütteln</div>
       ${['P205','P204','P206'].map(pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t==='bool'?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`).join('')}</div>`;
   } else if(k==='open'){
-    h+=`<div class="profR"><div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Öffnungsweg</b> (${f2(STROKE.open())} mm). Die 1. Stufe ist die Losbrechstufe – langsam fahren, damit das Formteil nicht beschädigt wird.</div></div>`;
+    h+=`<div class="profR">${PV}<div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Öffnungsweg</b> (${f2(STROKE.open())} mm). Die 1. Stufe ist die Losbrechstufe – langsam fahren, damit das Formteil nicht beschädigt wird.</div></div>`;
   } else {
-    h+=`<div class="profR"><div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Auswerferweg</b> (${f2(STROKE.ejF())} mm). Langsam anfahren, dann schnell ausstoßen.</div></div>`;
+    h+=`<div class="profR">${PV}<div class="pgh2">Hinweis</div><div class="hint">Die letzte Stufe bestimmt den <b>Auswerferweg</b> (${f2(STROKE.ejF())} mm). Langsam anfahren, dann schnell ausstoßen.</div></div>`;
   }
   $('vParam').innerHTML=h+'</div>';
   if(profSel){ const r=rangeOf(profSel.k,profSel.i,profSel.row);
@@ -1609,7 +1632,8 @@ function paramChecks(res){
   if(!pv('P501')) res.errGlobal='Heizung Zylinder aus – Kaltstartschutz: Dosieren/Einspritzen gesperrt.';
   else if(Math.min(...zones)<mn) res.errGlobal=`Kaltstartschutz: Zylindertemperatur unter Minimum für ${pv('P502')} (${mn} °C).`;
   if(Math.max(...zones)>mx) res.warn.push({msg:`Zylindertemperatur über ${mx} °C – thermische Schädigung von ${pv('P502')} möglich.`});
-  const cushion=pv('P403')-pv('P411')/600*1.2;
+  const cushion=cushionVol();
+  const Q=quality(); Q.D.filter(d=>d.sev>=2).forEach(d=>res.warn.push({msg:'Formteil: '+d.n+' – '+d.why}));
   if(cushion<=0) res.warn.push({msg:'Kein Massepolster – Umschaltpunkt/Dosiervolumen erhöhen, sonst unvollständige Formteile.'});
   if(pv('P422')<=pv('P403')) res.warn.push({msg:'Umschaltpunkt größer als Dosiervolumen – kein Einspritzhub.'});
   if(injPressure()>=pv('P402')) res.warn.push({msg:'Spritzdruckbegrenzung erreicht – Einspritzstrom wird nicht erreicht (Formteil evtl. unvollständig).'});
@@ -1629,6 +1653,7 @@ GLYPH.thermo=`<path d="M17 6a3 3 0 0 1 6 0v17a6 6 0 1 1-6 0z" fill="none"/><circ
 GLYPH.mtemp=PLATES+`<path d="M18 10a2 2 0 0 1 4 0v14a4 4 0 1 1-4 0z" fill="none"/>`;
 GLYPH.flowp=`<rect x="3" y="8" width="8" height="8"/><rect x="16" y="8" width="8" height="8"/><rect x="29" y="8" width="8" height="8"/><rect x="16" y="24" width="8" height="8"/><path d="M11 12h5M24 12h5M14 12v16h2"/>`;
 GLYPH.actv=`<path d="M5 34V6M5 34h30" fill="none"/><path d="M8 28l7-9 6 5 9-14" fill="none"/>`;
+GLYPH.part=`<path d="M8 10h24v22h-4V14H12v18H8z" fill="none"/><path d="M20 4v6"/>`;
 GLYPH.periph=DOOR+`<path d="M24 14l6 4-6 4" fill="none"/>`;
 const PAGESET = [
   {id:'flow', n:'Ablauf', g:'flowp'},
@@ -1639,7 +1664,7 @@ const PAGESET = [
   {id:'ej', n:'Auswerfer', g:'ej_fwd', subs:[
     {n:'Auswerfer vor', g:'ej_fwd', prof:'ejF'},
     {n:'Auswerfer zurück', g:'ej_back', prof:'ejB'},
-    {n:'Rütteln', g:'ej_vib', p:['P204']}]},
+    {n:'Rütteln', g:'ej_vib', p:['P204'], prev:'vib'}]},
   {id:'noz', n:'Düse', g:'nozzle_fwd', subs:[
     {n:'Düse', g:'nozzle_fwd', p:['P301','P302','P303']}]},
   {id:'inj', n:'Einspritzen', g:'inject', subs:[
@@ -1659,8 +1684,178 @@ const PAGESET = [
     {n:'Schutztür', g:'door_open', p:['P601']},
     {n:'Ventile', g:'blow_start', p:['P611']},
     {n:'Überwachungseingänge', g:'mon1_start', p:['P622','P621']}]},
+  {id:'part', n:'Formteil', g:'part', subs:[
+    {n:'Formteil-Daten', g:'part', p:['P701','P702','P703','P704','P705','P706','P707']},
+    {n:'Qualität', g:'actv', q:true}]},
   {id:'act', n:'Istwerte', g:'actv'},
 ];
+/* =====================================================================
+   FORMTEIL & QUALITÄT
+   ===================================================================== */
+const MATX = {PP:{rho:0.91,shr:1.6,k:2.0},PE:{rho:0.95,shr:2.0,k:2.2},ABS:{rho:1.05,shr:0.5,k:1.8},PA6:{rho:1.14,shr:1.2,k:1.9},PC:{rho:1.20,shr:0.6,k:1.7}};
+Object.assign(PDEF,{
+  P701:{n:'Formteil-Geometrie',t:'sel',v:'Becher',opts:['Becher','Platte','Deckel']},
+  P702:{n:'Länge',u:'mm',v:40,min:5,max:300},
+  P703:{n:'Breite',u:'mm',v:40,min:5,max:300},
+  P704:{n:'Höhe',u:'mm',v:30,min:1,max:200},
+  P705:{n:'Wanddicke',u:'mm',v:1.5,min:0.5,max:8,st:0.1},
+  P706:{n:'Anzahl Kavitäten',u:'',v:1,min:1,max:16,st:1},
+  P707:{n:'Angussvolumen',u:'cm³',v:1.0,min:0,max:20,st:0.1},
+});
+['P701','P702','P703','P704','P705','P706','P707'].forEach(k=>{PDEFV[k]=PDEF[k].v; if(cfg.p[k]===undefined) cfg.p[k]=PDEF[k].v;});
+// passende Grundeinstellung zum Formteil
+PDEF.P422.v=15; PDEFV.P422=15; cfg.p.P422=15;
+PDEF.P403.v=5.5; PDEFV.P403=5.5; cfg.p.P403=5.5;
+function partVol(){ // cm³ je Formteil
+  const L=pv('P702'),B=pv('P703'),H=pv('P704'),t=pv('P705');
+  let v;
+  if(pv('P701')==='Platte') v=L*B*t;
+  else if(pv('P701')==='Deckel') v=L*B*t + 2*(L+B)*t*Math.min(H,8);
+  else v=L*B*H - Math.max(0,L-2*t)*Math.max(0,B-2*t)*Math.max(0,H-t);
+  return v/1000;
+}
+function shotVol(){ return partVol()*pv('P706')+pv('P707'); }
+function cushionVol(){ return pv('P403') - shotVol()*0.05*Math.min(1,pv('P411')/600); }
+function quality(){
+  const m=MATX[pv('P502')], [mn,mx,opt]=MAT[pv('P502')];
+  const t=pv('P705'), shot=shotVol();
+  const D=[]; const add=(sev,n,why,fix)=>D.push({sev,n,why,fix});
+  const melt=(pv('P511')+pv('P510'))/2;
+  const pNeed=injPressure()*(1+ (2-Math.min(2,t))*0.25);
+  const pLim=pv('P402');
+  // Füllung beim Einspritzen
+  let inj=(pv('P422')-pv('P403'))/shot;
+  if(pNeed>pLim) inj*=Math.max(0.5,pLim/pNeed);
+  // Nachdruck: Versiegelungszeit ~ Wanddicke²
+  const tSeal=0.9*t*t+0.5;
+  const holdEff=Math.min(1,pv('P411')/600)*Math.min(1,pv('P412')/tSeal)*(cushionVol()>0?1:0.2);
+  let fill=Math.min(1.06, inj + 0.06*holdEff*(inj>0.9?1:0.3));
+  if(pv('P422')<shot*0.98) fill=Math.min(fill,pv('P422')/shot);
+  // Schließkraft
+  const area=pv('P702')*pv('P703')/100*pv('P706'); // cm²
+  const pCav=Math.max(pv('P411'),pNeed*0.55)*0.45; // bar Werkzeuginnendruck (vereinfacht)
+  const fNeed=Math.round(area*pCav/10);
+  // Kühlzeit
+  const tCool=m.k*t*t*(1+(pv('P520')-40)/120)*(pv('P521')?1:2.5);
+  const tCoolIs=pv('P412')+pv('P430');
+  // Schwindung
+  let shr=m.shr*(1.25-0.45*holdEff)*(1+(pv('P520')-40)/250);
+  if(tCoolIs<tCool) shr*=1+0.3*(1-tCoolIs/tCool);
+  // Fehlerbilder
+  if(!pv('P501')||melt<mn) add(3,'Kein Formteil','Kaltstartschutz – Massetemperatur unter Minimum.','Zylinderheizung einschalten, Temperaturen auf Richtwert.');
+  if(fill<0.97) add(3,`Unvollständig gefüllt (Füllgrad ${Math.round(fill*100)} %)`, pNeed>pLim?'Spritzdruckbegrenzung erreicht.':(pv('P422')<shot?'Dosiervolumen kleiner als Schussvolumen.':'Zu wenig Volumen bis zum Umschaltpunkt.'),'Dosiervolumen erhöhen / Umschaltpunkt verkleinern / Spritzdruckbegrenzung erhöhen.');
+  else if(holdEff<0.6) add(2,'Einfallstellen / Lunker',pv('P411')<300?'Nachdruck zu niedrig.':pv('P412')<tSeal?`Nachdruckzeit kürzer als Siegelzeit (~${tSeal.toFixed(1)} s).`:'Kein Massepolster – Nachdruck wirkt nicht.','Nachdruck und Nachdruckzeit erhöhen, Massepolster sicherstellen.');
+  if(cushionVol()<=0 && fill>=0.97) add(2,'Kein Massepolster','Schnecke fährt auf Anschlag – Nachdruck kann nicht nachfördern.','Umschaltpunkt/Dosiervolumen erhöhen.');
+  if(fill>1.025 || fNeed>pv('P103') || pv('P411')>1300) add(2,'Grat / Überspritzung', fNeed>pv('P103')?`Erforderliche Schließkraft ${fNeed} kN > eingestellt ${pv('P103')} kN.`:fill>1.025?'Zu viel Volumen eingespritzt (Umschaltpunkt zu spät).':'Nachdruck zu hoch.','Schließkraft erhöhen, Umschaltpunkt früher (größer), Nachdruck reduzieren.');
+  if(pv('P411')>1100 && fill>=0.97) add(1,'Entformungsprobleme / Eigenspannungen','Überladung durch sehr hohen Nachdruck.','Nachdruck reduzieren.');
+  if(tCoolIs<tCool*0.85) add(2,'Verzug / Formteil zu warm entformt',`Kühlzeit ${tCoolIs.toFixed(1)} s < erforderlich ~${tCool.toFixed(1)} s.`,'Restkühlzeit verlängern, Werkzeugtemperatur prüfen.');
+  if(tCoolIs>tCool*2.2) add(0,'Kühlzeit unnötig lang',`Erforderlich ~${tCool.toFixed(1)} s – Zykluszeit wird verschenkt.`,'Restkühlzeit verkürzen.');
+  if(Math.abs(shr-m.shr)>m.shr*0.25) add(1,`Maßabweichung durch Schwindung (${shr.toFixed(2)} %)`,shr>m.shr?'Zu hohe Schwindung (Nachdruck/Kühlung).':'Sehr geringe Schwindung – Überladung.','Nachdruck, Werkzeugtemperatur und Kühlzeit anpassen.');
+  if(melt>mx) add(2,'Brandstellen / Verfärbung','Massetemperatur über Verarbeitungsbereich – thermische Schädigung.','Zylindertemperaturen senken.');
+  if(melt<mn+10 && melt>=mn) add(1,'Fließlinien / matte Oberfläche','Massetemperatur an der unteren Grenze.','Zylindertemperaturen erhöhen.');
+  if(pv('P401')>60) add(1,'Brandstellen (Dieseleffekt)','Einspritzstrom sehr hoch – Luft wird komprimiert.','Einspritzstrom reduzieren, Entlüftung prüfen.');
+  if(pv('P401')<6) add(1,'Fließlinien / kalte Fließfront','Einspritzstrom sehr niedrig.','Einspritzstrom erhöhen.');
+  if(pv('P424')<20) add(1,'Schlieren / Lufteinschlüsse','Staudruck zu gering – Schmelze inhomogen.','Staudruck erhöhen (50–120 bar).');
+  if(pv('P424')>220) add(1,'Verfärbung','Staudruck sehr hoch – Scherung und Verweilzeit steigen.','Staudruck reduzieren.');
+  if(pv('P520')<20) add(1,'Matte Oberfläche / Spannungen','Werkzeugtemperatur zu niedrig.','Werkzeugtemperatur erhöhen.');
+  if(cfg.prof.ejF.st[0].v>200) add(1,'Auswerferabdrücke / Weißbruch','Auswerfer fährt zu schnell an.','1. Stufe Auswerfer vor langsamer.');
+  if(cfg.prof.open.st[0].v>150) add(1,'Formteil verformt beim Öffnen','Losbrechstufe zu schnell.','1. Stufe Werkzeug öffnen langsamer.');
+  const ok=!D.some(d=>d.sev>=2);
+  const L=pv('P702')*(1-shr/100), B=pv('P703')*(1-shr/100), H=pv('P704')*(1-shr/100);
+  const weight=partVol()*m.rho*Math.min(1,fill);
+  return {fill,shot,weight,shotW:weight*pv('P706')+pv('P707')*m.rho,shr,L,B,H,fNeed,area,tCool,tCoolIs,tSeal,holdEff,D,ok};
+}
+const SEVN=['Hinweis','leicht','Ausschuss','kein Teil'], SEVC=['#2a4f7a','#8a5d00','#c62828','#7b1fa2'];
+function partPic(Q){
+  // Seitenansicht des Formteils mit Fehlerbildern
+  const has=n=>Q.D.some(d=>d.n.startsWith(n));
+  const col=Q.D.some(d=>d.n.startsWith('Brand')||d.n.startsWith('Verfärb'))?'#a9864a':'#5c8fc7';
+  const fillW=Math.max(0,Math.min(1,Q.fill));
+  let o=`<svg viewBox="0 0 260 170" class="ppic"><rect width="260" height="170" fill="#fff"/>`;
+  const warp=has('Verzug')?8:0;
+  const shape=pv('P701')==='Platte'?`M40 100 Q130 ${100-warp} 220 100 L220 112 Q130 ${112-warp} 40 112Z`
+    : pv('P701')==='Deckel'?`M40 70 Q130 ${70-warp} 220 70 L220 110 L208 110 L208 82 Q130 ${82-warp} 52 82 L52 110 L40 110Z`
+    : `M50 40 L210 40 L210 140 L196 140 L196 54 Q130 ${54+warp} 64 54 L64 140 L50 140Z`;
+  o+=`<defs><clipPath id="pfill"><rect x="0" y="0" width="${40+180*fillW+(fillW>=1?40:0)}" height="170"/></clipPath></defs>`;
+  o+=`<path d="${shape}" fill="#eee" stroke="#bbb" stroke-dasharray="3 3"/>`;
+  o+=`<path d="${shape}" fill="${col}" stroke="#234" stroke-width="1.5" clip-path="url(#pfill)"/>`;
+  if(has('Einfall')) o+=`<path d="M110 40 q20 8 40 0" fill="#fff" stroke="#c62828"/><path d="M110 140 q20 -8 40 0" stroke="#c62828" fill="none"/>`;
+  if(has('Grat')) o+=`<path d="M46 40 l-10 -6 M214 40 l10 -6 M48 140 l-12 6 M212 140 l12 6" stroke="#c62828" stroke-width="3"/>`;
+  if(has('Schlieren')||has('Fließlinien')) o+=`<path d="M70 48 q30 6 60 0 t60 0 M70 46 q30 -4 60 0" stroke="#e3f2fd" stroke-width="2" fill="none"/>`;
+  if(has('Brandstellen')) o+=`<circle cx="200" cy="44" r="5" fill="#3e2723"/><circle cx="56" cy="132" r="4" fill="#3e2723"/>`;
+  if(has('Auswerferabdrücke')) o+=`<circle cx="100" cy="60" r="5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="160" cy="60" r="5" fill="none" stroke="#fff" stroke-width="2"/>`;
+  o+=`<text x="130" y="162" font-size="8.5" text-anchor="middle" fill="#333">${pv('P701')} ${Q.L.toFixed(2)} × ${Q.B.toFixed(2)} × ${Q.H.toFixed(2)} mm (nach Schwindung)</text></svg>`;
+  return o;
+}
+function renderQuality(){
+  const Q=quality(); const f=(v,d=2)=>(+v).toFixed(d).replace('.',',');
+  let h=`<div class="pgh">Formteilqualität nach dem Zyklus</div><div class="profwrap"><div class="profL">
+    <div class="qres ${Q.ok?'ok':'bad'}">${Q.ok?'✔ Gutteil':'✘ Ausschuss'}${Q.D.length?' – '+Q.D.filter(d=>d.sev>0).length+' Fehlerbild(er)':''}</div>
+    ${partPic(Q)}
+    <table class="cfg qt">
+      <tr><td>Füllgrad</td><td><b>${Math.round(Math.min(Q.fill,1.06)*100)} %</b></td><td>Schussvolumen</td><td><b>${f(Q.shot)} cm³</b></td></tr>
+      <tr><td>Gewicht je Formteil</td><td><b>${f(Q.weight)} g</b></td><td>Schussgewicht</td><td><b>${f(Q.shotW)} g</b></td></tr>
+      <tr><td>Schwindung</td><td><b>${f(Q.shr)} %</b></td><td>Massepolster</td><td><b>${f(Math.max(0,cushionVol()))} cm³</b></td></tr>
+      <tr><td>Erf. Schließkraft</td><td><b>${Q.fNeed} kN</b></td><td>Eingestellt</td><td><b>${pv('P103')} kN</b></td></tr>
+      <tr><td>Erf. Kühlzeit</td><td><b>${f(Q.tCool,1)} s</b></td><td>Ist (Nachdr.+Kühlz.)</td><td><b>${f(Q.tCoolIs,1)} s</b></td></tr>
+      <tr><td>Siegelzeit Anschnitt</td><td><b>${f(Q.tSeal,1)} s</b></td><td>Spritzdruck / Grenze</td><td><b>${injPressure()} / ${pv('P402')} bar</b></td></tr>
+    </table></div>
+    <div class="profR"><div class="pgh2">Fehlerbilder</div>`;
+  if(!Q.D.length) h+=`<div class="hint">Keine Fehler – Prozess im Gutbereich.</div>`;
+  Q.D.sort((a,b)=>b.sev-a.sev).forEach(d=>h+=`<div class="qd"><b style="color:${SEVC[d.sev]}">${d.n}</b> <span class="pill">${SEVN[d.sev]}</span><br><small>Ursache: ${d.why}<br>Abhilfe: ${d.fix}</small></div>`);
+  h+=`</div></div>`;
+  $('vParam').innerHTML=h;
+  $('symInfo').textContent='Qualität wird aus den Einstellwerten berechnet – Parameter ändern und Ergebnis beobachten';
+}
+
+/* =====================================================================
+   BEWEGUNGSVORSCHAU auf den Profilseiten
+   ===================================================================== */
+function profStateAt(k,t){
+  const P=cfg.prof[k]; let tt=t-(P.delay||0);
+  const segs=segments(k), total=segs.reduce((a,s)=>a+Math.abs(s.to-s.from),0)||1;
+  if(tt<=0) return {frac:0,stage:null,v:0,pos:startPos(k)};
+  let done=0;
+  for(const s of segs){ const d=Math.abs(s.to-s.from), ts=d/s.v;
+    if(tt<=ts){ const pos=s.from+(s.to-s.from)*tt/ts; return {frac:(done+tt*s.v)/total,stage:s.last?'Zuhalten':(P.st[s.i].ws?'WS':s.i+1),v:s.v,pos}; }
+    tt-=ts; done+=d; }
+  return {frac:1,stage:k==='close'?'Zuhalten':null,v:0,pos:segs.length?segs.at(-1).to:0};
+}
+let pvT0=performance.now();
+function previewKind(){ if(view==='flow') return null; const P=PAGESET.find(p=>p.id===view); const S=P&&P.subs&&P.subs[subIdx]; return S?(S.prof||S.prev||null):null; }
+function renderPreview(now){
+  const k=previewKind(); const el=$('pvSvg'); if(!k||!el) return;
+  const t=(now-pvT0)/1000;
+  let gap=0, ej=0, txt='', vbar=0, vmax=1;
+  if(k==='vib'){
+    const s=STROKE.ejF(), n=pv('P204'), Th=dur('ej_vib')/n, T=dur('ej_vib')+0.8, tc=t%T;
+    gap=1; const hub=Math.min(n,Math.floor(tc/Th)+1), ph=(tc%Th)/Th;
+    ej = tc<dur('ej_vib') ? 1-0.5*Math.sin(ph*Math.PI) : 1;
+    txt = tc<dur('ej_vib') ? `Rütteln: Hub ${hub} / ${n}` : 'Rütteln beendet';
+    vbar = tc<dur('ej_vib') ? Math.abs(Math.cos(ph*Math.PI)) : 0; vmax=1;
+  } else {
+    const Tm=profTime(k), T=Tm+1.2, tc=t%T;
+    const st=tc<=Tm?profStateAt(k,tc):{frac:1,stage:null,v:0};
+    let fr=st.frac; if(tc>Tm+0.6) fr=1-(tc-Tm-0.6)/0.6; // zurücksetzen
+    vmax=Math.max(...cfg.prof[k].st.map(x=>x.v)); vbar=tc<=Tm?st.v/vmax:0;
+    txt = tc<=Tm ? (st.stage===null?'Verzögerung':`Stufe ${st.stage} · v = ${Math.round(st.v)} mm/s · s = ${f2(st.pos??0)} mm`) : (tc<=Tm+0.6?'Endlage erreicht':'zurück in Ausgangslage');
+    if(k==='close') gap=1-fr; else if(k==='open') gap=fr; else { gap=1; ej = k==='ejF'?fr:1-fr; }
+  }
+  const mx=40+gap*90, ex=ej*34;
+  let o=`<rect width="260" height="170" fill="#f4f6f8"/>
+   <rect x="200" y="20" width="16" height="120" fill="#53a08e" stroke="#2f6b5d"/>
+   <path d="M200 30H170V130H200V100H180V60H200Z" fill="#c5ccd2" stroke="#59646d"/>
+   <g transform="translate(${mx-130} 0)">
+     <rect x="${100}" y="20" width="16" height="120" fill="#e0c13a" stroke="#8a7410"/>
+     <path d="M116 30H160V60H${180-10}V100H160V130H116Z" fill="#c5ccd2" stroke="#59646d"/>
+     <g fill="#b3261e"><rect x="${70+ex}" y="56" width="8" height="48"/><rect x="${78+ex}" y="62" width="${92}" height="4"/><rect x="${78+ex}" y="94" width="${92}" height="4"/></g>
+     ${(k==='ejF'||k==='ejB'||k==='vib')?`<path d="M${170+ex} 58H${182+ex}V102H${170+ex}V96H${178+ex}V64H${170+ex}Z" fill="#5c8fc7" stroke="#234"/>`:''}
+   </g>
+   <rect x="10" y="150" width="240" height="10" fill="#ddd" stroke="#999"/><rect x="10" y="150" width="${240*Math.min(1,vbar)}" height="10" fill="#2f73c9"/>
+   <text x="10" y="146" font-size="10" fill="#333">Geschwindigkeit</text>`;
+  el.innerHTML=o; $('pvTxt').textContent=txt;
+}
+
 let view='flow', subIdx=0, selP=null;
 const actLog=[];
 function fmtV(k){ const d=PDEF[k], v=pv(k); if(d.t==='bool') return v?'ja':'nein'; if(d.t==='sel') return v; return (+v).toLocaleString('de-DE',{maximumFractionDigits:2}); }
@@ -1680,11 +1875,14 @@ function renderPages(){
   if(view==='act'){ renderAct(); return; }
   const S=P.subs[subIdx];
   if(S.prof){ renderProfile(S.prof); return; }
+  if(S.q){ renderQuality(); return; }
   let h=`<div class="pgh">${S.n}</div><div class="plist">`;
   S.p.forEach(k=>{ const d=PDEF[k];
     h+=`<div class="prow ${selP===k?'sel':''}" data-p="${k}"><span class="pn">${d.n}</span><button class="pval ${d.t==='bool'?'b':''}" data-p="${k}">${fmtV(k)}</button><span class="pu">${d.u||''}</span></div>`; });
   const used=new Set(S.p);
   const affected=Object.keys(SYM).filter(t=>t!=='start'&&t!=='end'&&SCH.items.some(x=>x.t===t));
+  if(S.prev) h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
+  if(pv('P701')&&view==='part') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Formteil</div>${partPic(quality())}<div class="hint">Volumen je Teil: <b>${partVol().toFixed(2).replace('.',',')} cm³</b> · Schussvolumen: <b>${shotVol().toFixed(2).replace('.',',')} cm³</b> · Gewicht: <b>${quality().weight.toFixed(2).replace('.',',')} g</b> (${pv('P502')})</div>`;
   h+=`</div><div class="pcalc">Berechnete Zeiten im Ablauf: ${affected.map(t=>`<span class="pill">${SYM[t].s} ${dur(t).toFixed(2).replace('.',',')} s</span>`).join(' ')}</div>`;
   $('vParam').innerHTML=h;
   renderPInfo();
@@ -1699,18 +1897,19 @@ function renderPInfo(){
 function renderAct(){
   let h=`<div class="pgh">Istwerte / Prozessprotokoll</div>
   <div class="plist"><div class="prow"><span class="pn">Spritzdruck (berechnet)</span><b>${injPressure()} bar</b></div>
-  <div class="prow"><span class="pn">Massepolster (berechnet)</span><b>${Math.max(0,pv('P403')-pv('P411')/600*1.2).toFixed(2).replace('.',',')} cm³</b></div>
+  <div class="prow"><span class="pn">Massepolster (berechnet)</span><b>${Math.max(0,cushionVol()).toFixed(2).replace('.',',')} cm³</b></div>
+  <div class="prow"><span class="pn">Gutteile / Ausschuss</span><b>${actLog.filter(a=>a.ok).length} / ${actLog.filter(a=>!a.ok).length}</b></div>
   <div class="prow"><span class="pn">Zykluszeit Soll</span><b>${SCH.T.toFixed(2).replace('.',',')} s</b></div>
   <div class="prow"><span class="pn">Gutteile gesamt</span><b>${sim.parts}</b></div></div>
   <table class="cfg act"><tr><th>Zyklus</th><th>Zykluszeit</th><th>Dosierzeit</th><th>Spritzdruck</th><th>Massepolster</th><th>Formteil</th></tr>`;
-  actLog.slice(-15).reverse().forEach(a=>h+=`<tr><td>${a.n}</td><td>${a.T} s</td><td>${a.d} s</td><td>${a.p} bar</td><td>${a.c} cm³</td><td>${a.ok?'✔ ausgeworfen':'✘ nicht entformt'}</td></tr>`);
+  actLog.slice(-15).reverse().forEach(a=>h+=`<tr><td>${a.n}</td><td>${a.T} s</td><td>${a.d} s</td><td>${a.p} bar</td><td>${a.c} cm³</td><td>${a.ok?'✔ Gutteil':'✘ Ausschuss'+(a.q?' ('+a.q+')':'')}</td></tr>`);
   if(!actLog.length) h+=`<tr><td colspan="6">Noch keine Zyklen gefahren.</td></tr>`;
   $('vParam').innerHTML=h+'</table>';
   $('symInfo').textContent='Istwerte der letzten 15 Zyklen';
 }
 function logCycle(ok){
   const f=v=>v.toFixed(2).replace('.',',');
-  actLog.push({n:sim.cycle,T:f(SCH.T),d:f(dur('dose')),p:injPressure(),c:f(Math.max(0,pv('P403')-pv('P411')/600*1.2)),ok});
+  actLog.push({n:sim.cycle,T:f(SCH.T),d:f(dur('dose')),p:injPressure(),c:f(Math.max(0,cushionVol())),ok:ok&&quality().ok,q:quality().D.filter(d=>d.sev>=2).map(d=>d.n).join(', ')});
   if(view==='act') renderAct();
 }
 function setParam(k,val){
@@ -1732,8 +1931,8 @@ function editParam(k){
   const ks=Object.keys(PDEF).filter(x=>!PDEF[x].t);
   openInput({id:k,label:d.n,u:d.u,min:d.min,max:d.max,pmin:d.min,pmax:d.max,value:pv(k),ok:v=>setParam(k,v),nav:dd=>{ const P=PAGESET.find(p=>p.id===view); const list=(P&&P.subs&&P.subs[subIdx].p||[]).filter(x=>!PDEF[x].t); if(!list.length) return; const i=list.indexOf(k); editParam(list[(i+dd+list.length)%list.length]); }});
 }
-$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
-$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; $('scroll').scrollTop=0; renderPages(); });
+$('pages1').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; view=b.dataset.pg; subIdx=0; selP=null; profSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); if(view==='flow') renderAll(); });
+$('pages2').addEventListener('click',e=>{ const b=e.target.closest('.pg'); if(!b) return; subIdx=+b.dataset.sub; selP=null; profSel=null; pvT0=performance.now(); $('scroll').scrollTop=0; renderPages(); });
 $('vParam').addEventListener('click',e=>{
   const pc=e.target.closest('.pc:not(.ro)'); if(pc){ editProfCell({k:pc.dataset.k,i:+pc.dataset.i,row:pc.dataset.r}); return; }
   const sb=e.target.closest('[data-stage]'); if(sb){ const P=PAGESET.find(p=>p.id===view); stageAdd(P.subs[subIdx].prof,+sb.dataset.stage); return; }
