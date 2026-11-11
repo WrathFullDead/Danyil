@@ -75,15 +75,18 @@ button{font:inherit;cursor:pointer}
 .sd.on{box-shadow:inset 0 0 0 3px var(--blue)}
 .sd.sp{margin-top:auto}
 /* Ablauf Editieren – schwebendes Fenster */
-#edit{position:absolute;right:8px;top:150px;width:260px;background:#d9dcdf;border:1px solid #445;border-radius:3px;box-shadow:0 6px 20px rgba(0,0,0,.35);display:none;flex-direction:column;z-index:10}
+#edit{position:absolute;left:6px;top:120px;width:300px;background:#cfd3d6;border:3px solid var(--blue);border-radius:2px;box-shadow:0 6px 20px rgba(0,0,0,.35);display:none;flex-direction:column;z-index:10}
 #edit.open{display:flex}
-#edit .eh{background:var(--blue);color:#fff;padding:7px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
-#edit .eh button{background:none;border:0;color:#fff;font-size:22px;line-height:1}
-.eb{display:flex;align-items:center;gap:8px;margin:4px 8px;padding:8px 10px;background:#6f7881;color:#fff;border:1px solid #444;border-radius:3px;text-align:left;font-size:14px}
-.eb:hover{background:#59626b}
-.eb.on{background:#ffb300;color:#222}
-.eb i{font-style:normal;width:20px;text-align:center}
-#edit .ef{display:flex;gap:6px;padding:8px}
+#edit .eh{background:linear-gradient(#3d86de,#2a6cc0);color:#fff;padding:0 0 0 12px;height:52px;font-weight:700;font-size:17px;display:flex;justify-content:space-between;align-items:center;cursor:move;touch-action:none}
+#edit .eh button{width:50px;height:46px;margin:3px;background:#8b9196;border:1px solid #555;border-radius:2px;color:#fff;font-size:30px;line-height:1}
+#edit .elist{padding:10px 12px 4px}
+.eb{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 8px;padding:0 12px;height:48px;background:linear-gradient(#b9bec2,#a3a9ae);color:#222;border:1px solid #6d7378;border-radius:2px;text-align:left;font-size:15px;font-weight:600;box-shadow:0 1px 0 #fff inset}
+.eb:hover{background:#c6cacd}
+.eb.on{background:#ffb300}
+.eb svg{width:22px;height:22px;flex-shrink:0}
+#edit .ef{display:flex;gap:10px;padding:4px 12px 12px}
+#edit .ef button{width:56px;height:56px;background:var(--blue);border:1px solid #1d4f8f;border-radius:2px;color:#fff}
+#edit .ef button svg{width:34px;height:34px}
 .hint{font-size:12px;padding:6px 10px;color:#333;line-height:1.35}
 .pill{display:inline-block;padding:1px 6px;border-radius:9px;background:#d6dbe0;font-size:12px}
 /* Dialoge */
@@ -126,6 +129,7 @@ label.r{display:block;padding:3px 0;font-size:14px}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
+  #edit{width:270px}
   .mode{width:48px;height:48px;font-size:18px}
   .logo{display:none}
   #head{grid-template-columns:auto 1fr}
@@ -133,7 +137,6 @@ label.r{display:block;padding:3px 0;font-size:14px}
   .pg svg{width:28px;height:28px}
   #body{grid-template-columns:1fr 58px}
   .sd{width:50px;height:50px;font-size:18px}
-  #edit{left:8px;right:8px;width:auto;top:60px}
 }
 </style>
 </head>
@@ -175,16 +178,20 @@ label.r{display:block;padding:3px 0;font-size:14px}
       </div>
 
       <div id="edit">
-        <div class="eh"><span>✎ Ablauf Editieren</span><button id="editClose">×</button></div>
-        <button class="eb" id="eIns"><i>＋</i>Symbol einfügen</button>
-        <button class="eb" id="eMove"><i>✥</i>Symbol verschieben</button>
-        <button class="eb" id="eDel"><i>✕</i>Symbol löschen</button>
-        <button class="eb" id="eCond"><i>⇅</i>Startbedingung ändern</button>
-        <button class="eb" id="eDrive"><i>⚙</i>Antrieb umschalten</button>
-        <button class="eb" id="eBranch"><i>⇥</i>Zweigende verschieben</button>
-        <button class="eb" id="eBase"><i>⌂</i>Grundablauf</button>
-        <button class="eb" id="eUndo"><i>↶</i>Rückgängig</button>
-        <div class="hint" id="editHint">Symbol antippen = markieren. Einfügen: seriell danach oder parallel dazu.</div>
+        <div class="eh" id="editHead"><span>✎ Ablauf Editieren</span><button id="editClose" title="Schließen">✕</button></div>
+        <div class="elist">
+        <button class="eb" id="eIns"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M5 2v6M2 5h6"/><rect x="4" y="13" width="7" height="7"/><rect x="14" y="13" width="7" height="7"/><path d="M11 16.5h3"/></svg>Symbol einfügen</button>
+        <button class="eb" id="eMove"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M12 3v18M3 12h18M12 3l-2 2M12 3l2 2M12 21l-2-2M12 21l2-2M3 12l2-2M3 12l2 2M21 12l-2-2M21 12l-2 2"/><rect x="9" y="9" width="6" height="6"/></svg>Symbol verschieben</button>
+        <button class="eb" id="eDel"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><rect x="5" y="5" width="14" height="14"/><path d="M3 3l18 18M21 3L3 21"/></svg>Symbol löschen</button>
+        <button class="eb" id="eCond"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><path d="M2 6h6l4 6-4 6H2M22 6h-6l-4 6 4 6h6"/></svg>Startbedingung ändern</button>
+        <button class="eb" id="eDrive"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 13l4-4 4 4"/></svg>Antrieb umschalten</button>
+        <button class="eb" id="eBranch"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><rect x="2" y="4" width="6" height="6"/><rect x="2" y="14" width="6" height="6"/><path d="M8 7h6v10H8M14 12h8M19 9l3 3-3 3"/></svg>Zweigende verschieben</button>
+        <button class="eb" id="eBase"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><rect x="1" y="3" width="5" height="5"/><rect x="9.5" y="3" width="5" height="5"/><rect x="18" y="3" width="5" height="5"/><rect x="9.5" y="15" width="5" height="5"/><path d="M6 5.5h3.5M14.5 5.5H18M12 8v7"/></svg>Grundablauf</button>
+        </div>
+        <div class="ef">
+          <button id="eUndo" title="Rückgängig"><svg viewBox="0 0 34 34"><path d="M6 6v22h22z" fill="#fff"/></svg></button>
+          <button id="eOk" title="Fertig / Schließen"><svg viewBox="0 0 34 34"><path d="M28 6v22H6z" fill="none" stroke="#fff" stroke-width="2"/></svg></button>
+        </div>
       </div>
     </div>
 
@@ -1277,7 +1284,14 @@ $('sMsg').onclick=()=>toggleSec('sMsg','secMsg');
 ['sMach','sGantt','sMsg'].forEach(id=>$(id).classList.add('on'));
 $('sBack').onclick=()=>{ moveSrc=null; sel=null; renderAll(); };
 $('bEdit').onclick=()=>{ $('edit').classList.toggle('open'); $('bEdit').classList.toggle('on',$('edit').classList.contains('open')); };
-$('editClose').onclick=()=>{ $('edit').classList.remove('open'); $('bEdit').classList.remove('on'); };
+$('editClose').onclick=$('eOk').onclick=()=>{ $('edit').classList.remove('open'); $('bEdit').classList.remove('on'); moveSrc=null; renderAll(); };
+// Fenster verschiebbar
+(()=>{ const h=$('editHead'), w=$('edit'); let sx,sy,ox,oy,drag=false;
+  h.addEventListener('pointerdown',e=>{ if(e.target.closest('button')) return; drag=true; sx=e.clientX; sy=e.clientY; ox=w.offsetLeft; oy=w.offsetTop; h.setPointerCapture(e.pointerId); });
+  h.addEventListener('pointermove',e=>{ if(!drag) return; const P=w.offsetParent.getBoundingClientRect();
+    w.style.left=Math.max(0,Math.min(P.width-w.offsetWidth,ox+e.clientX-sx))+'px'; w.style.top=Math.max(0,Math.min(P.height-60,oy+e.clientY-sy))+'px'; });
+  h.addEventListener('pointerup',()=>drag=false);
+})();
 
 /* Start */
 load();
