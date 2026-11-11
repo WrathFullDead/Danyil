@@ -1679,6 +1679,7 @@ const PAGESET = [
   {id:'dose', n:'Dosieren', g:'dose', subs:[
     {n:'Auswahl Dosieren', g:'dose', p:['P420','P427']},
     {n:'Dosieren / Dekomp. / Kühlen', g:'dose', gp:'dose'},
+    {n:'Zylinder / Schnecke', g:'dose', p:['P450','P451','P452'], prev:'unit'},
     {n:'Dekompression', g:'decomp', p:['P428','P425','P426'], prev:'screw'},
     {n:'Kühlzeit', g:'cool', p:['P430']}]},
   {id:'tcyl', n:'Temp. Zylinder', g:'thermo', subs:[
@@ -1766,6 +1767,7 @@ function quality(){
   if(melt<mn+10 && melt>=mn) add(1,'Fließlinien / matte Oberfläche','Massetemperatur an der unteren Grenze.','Zylindertemperaturen erhöhen.');
   if(pv('P401')>60) add(1,'Brandstellen (Dieseleffekt)','Einspritzstrom sehr hoch – Luft wird komprimiert.','Einspritzstrom reduzieren, Entlüftung prüfen.');
   if(pv('P401')<6) add(1,'Fließlinien / kalte Fließfront','Einspritzstrom sehr niedrig.','Einspritzstrom erhöhen.');
+  { const dD=pv('P422')/screwA()*10/screwD(); if(dD>3.5) add(1,'Unaufgeschmolzene Partikel / Schlieren',`Dosierweg ${dD.toFixed(1)} D – zu groß für diese Schnecke.`,'Größere Schnecke verwenden oder Dosiervolumen reduzieren.'); if(dD<0.8) add(1,'Verfärbung durch lange Verweilzeit',`Dosierweg nur ${dD.toFixed(1)} D.`,'Kleinere Schnecke verwenden.'); }
   if(pv('P424')<20) add(1,'Schlieren / Lufteinschlüsse','Staudruck zu gering – Schmelze inhomogen.','Staudruck erhöhen (50–120 bar).');
   if(pv('P424')>220) add(1,'Verfärbung','Staudruck sehr hoch – Scherung und Verweilzeit steigen.','Staudruck reduzieren.');
   if(pv('P520')<20) add(1,'Matte Oberfläche / Spannungen','Werkzeugtemperatur zu niedrig.','Werkzeugtemperatur erhöhen.');
@@ -1880,6 +1882,27 @@ Object.assign(PDEF,{
   P516:{n:'Toleranzband Temperatur',u:'± °C',v:10,min:2,max:50},
 });
 ['P413','P427','P428','P440','P441','P442','P516'].forEach(k=>{PDEFV[k]=PDEF[k].v; if(cfg.p[k]===undefined) cfg.p[k]=PDEF[k].v;});
+Object.assign(PDEF,{
+  P450:{n:'Schneckendurchmesser',u:'mm',t:'sel',v:'25',opts:['18','20','22','25','30','35','40','45','50','55','60']},
+  P451:{n:'Max. Dosierweg (Hub)',u:'mm',v:100,min:20,max:300},
+  P452:{n:'Schneckenlänge L/D',u:'',v:20,min:15,max:28,st:1},
+});
+['P450','P451','P452'].forEach(k=>{PDEFV[k]=PDEF[k].v; if(cfg.p[k]===undefined) cfg.p[k]=PDEF[k].v;});
+const screwD = () => +pv('P450');                                   // mm
+const screwA = () => Math.PI/4*Math.pow(screwD()/10,2);            // cm²
+const vMax   = () => +(screwA()*pv('P451')/10).toFixed(1);         // cm³
+const pMaxInj= () => Math.round(Math.min(3000,2500*Math.pow(25/screwD(),2))/10)*10; // bar
+const rpm    = v => v/(Math.PI*screwD()/1000);                      // U/min aus m/min
+const doseK  = () => 0.42*Math.pow(screwD()/25,2);
+function limitsSync(){
+  const vm=vMax(), pm=pMaxInj();
+  PDEF.P422.max=vm; PDEF.P403.max=vm; PDEF.P402.max=pm; PDEF.P441.max=pm; PDEF.P425.max=Math.max(1,+(vm*0.2).toFixed(1));
+  if(GPDEF.inj) GPDEF.inj.rows[1].max=pm;
+  if(cfg.p.P422>vm){ cfg.p.P422=vm; toast(`Dosiervolumen auf Maximum ${vm} cm³ begrenzt`); }
+  if(cfg.p.P403>=cfg.p.P422) cfg.p.P403=+(cfg.p.P422*0.3).toFixed(1);
+  if(cfg.gp){ cfg.gp.inj.forEach(x=>{ if(x.p>pm) x.p=pm; if(x.s>cfg.p.P422) x.s=cfg.p.P422; });
+    cfg.gp.dose.forEach(x=>{ if(x.s>cfg.p.P422) x.s=cfg.p.P422; }); }
+}
 const GPDEF = {
   inj: {n:'Einspritzen', id:5, axis:'s', au:'cm³', rows:[
          {k:'v',n:'Einspritzstrom',u:'cm³/s',min:1,max:120,c:'#1d4f8f'},
@@ -1898,6 +1921,7 @@ cfg.gp = clone(Object.fromEntries(Object.entries(GPDEF).map(([k,d])=>[k,d.st])))
 const gpStart = k => k==='inj' ? pv('P422') + (pv('P428')!=='aus'?pv('P425'):0) : k==='dose' ? Math.max(0,cushionVolRaw()) : 0;
 function cushionVolRaw(){ return pv('P403') - (typeof shotVol==='function'?shotVol():10)*0.05*Math.min(1,(pv('P411')||600)/600); }
 function gpSync(){
+  limitsSync();
   const I=cfg.gp.inj, H=cfg.gp.hold, Dd=cfg.gp.dose;
   I.at(-1).s=pv('P403'); Dd.at(-1).s=pv('P422');
   // abgeleitete Kennwerte für Qualität/Zeiten
@@ -1911,7 +1935,7 @@ function gpSync(){
 }
 function torque(st){ const [mn,mx,opt]=MAT[pv('P502')]; const visc=Math.max(0.6,1+(opt-((tIst&&tIst.P513)??pv('P513')))/80); return (60+0.45*st.p+1.8*st.n)*visc; }
 function injTime(){ let t=0,s0=gpStart('inj'); cfg.gp.inj.forEach(x=>{ t+=Math.abs(s0-x.s)/x.v; s0=x.s; }); if(pv('P440')==='Zeit') t=Math.min(t,pv('P442')); return Math.max(0.05,t); }
-function doseTime(){ let t=pv('P427'),prev=gpStart('dose'); cfg.gp.dose.forEach(x=>{ t+=Math.max(0,x.s-prev)/(0.42*x.n*Math.max(0.2,1-x.p/600)); prev=x.s; }); return t; }
+function doseTime(){ let t=pv('P427'),prev=gpStart('dose'); cfg.gp.dose.forEach(x=>{ t+=Math.max(0,x.s-prev)/(doseK()*x.n*Math.max(0.2,1-x.p/600)); prev=x.s; }); return t; }
 function holdTime(){ return pv('P413')+cfg.gp.hold.reduce((a,x)=>a+x.t,0); }
 /* Bereich / Zugriff */
 function gpRange(k,i,row){
@@ -1921,8 +1945,8 @@ function gpRange(k,i,row){
   if(r) return {min:r.min,max:r.max,pmin:r.min,pmax:r.max,u:r.u};
   // Weg s
   const prev=i===0?gpStart(k):st[i-1].s, next=i<st.length-1?st[i+1].s:null;
-  if(k==='inj') return {min:0,max:48,pmin: next===null?0:next, pmax:prev,u:'cm³'};
-  return {min:0,max:48,pmin:prev,pmax:next===null?48:next,u:'cm³'};
+  if(k==='inj') return {min:0,max:vMax(),pmin: next===null?0:next, pmax:prev,u:'cm³'};
+  return {min:0,max:vMax(),pmin:prev,pmax:next===null?vMax():next,u:'cm³'};
 }
 function gpId(k,i,row){ return `${row}${GPDEF[k].id}${String(i+1).padStart(2,'0')}`; }
 function gpGet(c){ return cfg.gp[c.k][c.i][c.row]; }
@@ -2132,6 +2156,15 @@ function renderPages(){
   const used=new Set(S.p);
   const affected=Object.keys(SYM).filter(t=>t!=='start'&&t!=='end'&&SCH.items.some(x=>x.t===t));
   if(S.prev==='vib') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Bewegung – Vorschau</div><svg id="pvSvg" viewBox="0 0 260 170"></svg><div id="pvTxt" class="hint"></div>`;
+  if(S.prev==='unit'){ const f=(v,d=1)=>(+v).toFixed(d).replace('.',',');
+    h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Spritzeinheit – berechnete Kennwerte</div><table class="cfg qt">
+      <tr><td>Schneckendurchmesser D</td><td><b>${screwD()} mm</b></td><td>Schneckenlänge</td><td><b>${pv('P452')} D = ${screwD()*pv('P452')} mm</b></td></tr>
+      <tr><td>Schneckenquerschnitt</td><td><b>${f(screwA(),2)} cm²</b></td><td>Max. Dosierweg</td><td><b>${pv('P451')} mm (${f(pv('P451')/screwD(),1)} D)</b></td></tr>
+      <tr><td>Max. Dosiervolumen</td><td><b>${f(vMax())} cm³</b></td><td>Max. Schussgewicht (${pv('P502')})</td><td><b>${f(vMax()*MATX[pv('P502')].rho*0.85)} g</b></td></tr>
+      <tr><td>Max. Spritzdruck</td><td><b>${pMaxInj()} bar</b></td><td>Akt. Dosiervolumen</td><td><b>${f(pv('P422'))} cm³ = ${f(pv('P422')/screwA()*10)} mm (${f(pv('P422')/screwA()*10/screwD(),2)} D)</b></td></tr>
+      <tr><td>Drehzahl bei ${pv('P423')} m/min</td><td><b>${Math.round(rpm(pv('P423')))} U/min</b></td><td>Ausnutzung Dosierhub</td><td><b>${Math.round(pv('P422')/vMax()*100)} %</b></td></tr></table>
+      <div class="hint">Regeln: Dosierweg möglichst 1 – 3 D (Schmelzequalität). Größere Schnecke = mehr Volumen, aber weniger Spritzdruck (Druck ∝ 1/D²).
+      ${pv('P422')/screwA()*10/screwD()>3.5?'<b style="color:#c62828">Dosierweg > 3,5 D – Gefahr unaufgeschmolzener Partikel!</b>':''}${pv('P422')/screwA()*10/screwD()<1?'<b style="color:#8a5d00">Dosierweg < 1 D – lange Verweilzeit, thermische Schädigung möglich.</b>':''}</div>`; }
   if(S.prev==='screw') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Schnecke / Schneckenvorraum</div><svg id="scSvg" viewBox="0 0 620 212"></svg><div id="scTxt" class="hint"></div>`;
   if(S.prev==='temp') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Plastifizierzylinder – Temperaturzonen (Soll antippen zum Ändern)</div><svg id="tpSvg" viewBox="0 0 640 290"></svg>`;
   if(pv('P701')&&view==='part') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Formteil</div>${partPic(quality())}<div class="hint">Volumen je Teil: <b>${partVol().toFixed(2).replace('.',',')} cm³</b> · Schussvolumen: <b>${shotVol().toFixed(2).replace('.',',')} cm³</b> · Gewicht: <b>${quality().weight.toFixed(2).replace('.',',')} g</b> (${pv('P502')})</div>`;
@@ -2173,6 +2206,7 @@ function setParam(k,val){
     if(val>d.max){ setAlarm('warn',`${k} Datenfehler, Wert größer als Maximum (${d.max})`); return false; }
   }
   cfg.p[k]=val;
+  if(k==='P450'||k==='P451') toast(`Max. Dosiervolumen jetzt ${vMax()} cm³ · max. Spritzdruck ${pMaxInj()} bar`);
   if(k==='P403'){ const I=cfg.gp.inj; if(I.length>1 && I.at(-2).s<=val){ toast('Umschaltpunkt muss kleiner als Ende der vorletzten Einspritzstufe sein'); } }
   if(k==='P502'){ const [mn,mx,o]=MAT[val]; ['P510','P511'].forEach(z=>cfg.p[z]=o); cfg.p.P512=o-5; cfg.p.P513=o-15; cfg.p.P514=o-30; toast(`Material ${val}: Temperaturen auf Richtwerte gesetzt (${mn}–${mx} °C)`); }
   changed(); renderPages(); return true;
