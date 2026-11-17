@@ -228,6 +228,9 @@ td.istv{color:#2e7d32;font-weight:700}
 @media print{ body.printqr #app, body.printqr .dlg:not(#dQR), body.printqr #dQR .df, body.printqr #dQR .dh, body.printqr #qrUrl, body.printqr #dQR .hint{display:none!important}
   body.printqr #dQR{position:static;background:none;display:flex!important} body.printqr #dQR .dbox{box-shadow:none;border:0} body.printqr #qrBox{border:0;transform:scale(1.6);margin:80px}}
 .langlist{display:flex;flex-direction:column;gap:6px}.langb{text-align:left;font-size:16px}
+html[dir=rtl] svg, html[dir=rtl] #flowWrap, html[dir=rtl] input, html[dir=rtl] .ptab, html[dir=rtl] #kIn{direction:ltr}
+html[dir=rtl] .prow .pn{text-align:left}
+html[dir=rtl] body{font-family:"Segoe UI",Tahoma,"Noto Sans Arabic",Arial,sans-serif}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#333;color:#fff;padding:8px 14px;border-radius:4px;font-size:14px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:30;max-width:90vw}
 #toast.show{opacity:.95}
 @media (max-width:800px){
@@ -2787,8 +2790,8 @@ var qrcode = function() {
    SPRACHEN – Wörterbuch Deutsch → ru / en / pl / it / sr
    [de, ru, en, pl, it, sr]
    ===================================================================== */
-const LANGS={de:'Deutsch',ru:'Русский',en:'English',pl:'Polski',it:'Italiano',sr:'Srpski'};
-const LANGFLAG={de:'🇩🇪',ru:'🇷🇺',en:'🇬🇧',pl:'🇵🇱',it:'🇮🇹',sr:'🇷🇸'};
+const LANGS={de:'Deutsch',ru:'Русский',en:'English',pl:'Polski',it:'Italiano',sr:'Srpski',ar:'العربية'};
+const LANGFLAG={de:'🇩🇪',ru:'🇷🇺',en:'🇬🇧',pl:'🇵🇱',it:'🇮🇹',sr:'🇷🇸',ar:'ع'};
 const I18N=[
 ["Qualität","Качество","Quality","Jakość","Qualità","Kvalitet"],
 ["− Stufe","− ступень","− stage","− stopień","− stadio","− stepen"],
@@ -3326,14 +3329,129 @@ const I18N=[
 ["Ablauf plausibel – keine Meldungen.","Цикл в порядке – сообщений нет.","Sequence plausible – no messages.","Sekwencja poprawna – brak komunikatów.","Sequenza plausibile – nessun messaggio.","Sekvenca ispravna – nema poruka."],
 ["Meldungen / Plausibilitätsprüfung","Сообщения / проверка","Messages / plausibility check","Komunikaty / kontrola","Messaggi / verifica","Poruke / provera"],
 ];
+const I18N_AR={
+"Qualität":"الجودة","− Stufe":"− مرحلة","+ Stufe":"+ مرحلة",
+"Istwerte erscheinen nach dem ersten gefahrenen Zyklus.":"تظهر القيم الفعلية بعد أول دورة.",
+"(nach Schwindung)":"(بعد الانكماش)",
+"Qualität wird aus den Einstellwerten berechnet – Parameter ändern und Ergebnis beobachten":"تُحسب الجودة من الإعدادات – غيّر المعاملات وراقب النتيجة",
+"Wert antippen zum Bearbeiten – gelb = Toleranz, grün = Istwert":"اضغط على قيمة – الأصفر = التفاوت، الأخضر = القيمة الفعلية",
+"Lampen leuchten während der Simulation":"تضيء المصابيح أثناء المحاكاة",
+"Ein- / Ausgänge (live)":"المداخل / المخارج (مباشر)","Symbol: –":"الرمز: –",
+"Ausgänge (Y) = Ventile/Antriebe, die die Steuerung schaltet. Eingänge (S) = Endschalter/Sensoren, die die Steuerung abfragt.":"المخارج (Y) = صمامات/محركات يشغّلها التحكم. المداخل (S) = مفاتيح نهاية/حساسات يقرؤها التحكم.",
+"Grundstellung – bereit":"الوضع الأساسي – جاهز","Grundstellung":"الوضع الأساسي","virtuelle Steuerung":"تحكم افتراضي","Datenschutz":"الخصوصية",
+"Automatikbetrieb":"التشغيل الآلي","Halbautomatik – 1 Zyklus":"شبه آلي – دورة واحدة","Halbautomatik":"شبه آلي","Automatik":"آلي",
+"Zyklus beendet":"انتهت الدورة","Gestoppt":"متوقف","Stillstand":"توقف","Stopp":"إيقاف","Weiter":"متابعة","Zyklus":"الدورة","Zyklen":"دورات",
+"Ist":"فعلي","Teile":"القطع","Einrichten / Grundstellung, Alarme quittieren":"ضبط / الوضع الأساسي، تأكيد الإنذارات",
+"Nach Zwischenstopp weiter":"متابعة بعد التوقف المؤقت","Simulationsgeschwindigkeit":"سرعة المحاكاة","Schneckenposition":"موضع اللولب",
+"Zykluszeit (berechnet)":"زمن الدورة (محسوب)","Ist-Zeit":"الزمن الفعلي","Gutteile":"القطع السليمة","Sprache":"اللغة",
+"Ablauf":"التسلسل","Werkzeug":"القالب","Auswerfer":"القاذف","Düse":"الفوهة","Einspritzen":"الحقن","Dosieren":"التلقيم",
+"Temp. Zylinder":"حرارة الأسطوانة","Temp. Werkzeug":"حرارة القالب","Peripherie":"الملحقات","Formteil":"القطعة المصبوبة",
+"Qualitäts­überwachung":"مراقبة الجودة","Funktions­überwachung":"مراقبة الوظائف","Einricht­protokoll":"سجل الضبط","Programm­verwaltung":"إدارة البرامج",
+"Istwerte":"القيم الفعلية","Bediener":"المشغّل","Meldungen":"الرسائل","Wartung":"الصيانة","Ein-/Ausgänge":"المداخل/المخارج","Einstellungen":"الإعدادات",
+"Prozess":"العملية","Maschine":"الآلة","Zeiten":"الأزمنة","Einstellen":"ضبط","Export":"تصدير","Import":"استيراد","Hilfe":"مساعدة","Aufgaben":"التمارين",
+"Bildgruppe wählen":"اختيار مجموعة الصفحات","Qualität / Überwachung":"الجودة / المراقبة","System":"النظام",
+"Prozessansicht: Werkzeug im Schnitt":"عرض العملية: مقطع القالب","Maschinenansicht ein/aus":"عرض الآلة تشغيل/إيقاف","Zeitdiagramm ein/aus":"مخطط الزمن تشغيل/إيقاف",
+"Meldungen ein/aus":"الرسائل تشغيل/إيقاف","Maschine / Werkzeug / Zeiten":"الآلة / القالب / الأزمنة","Ablauf speichern":"حفظ التسلسل","Ablauf laden":"تحميل التسلسل",
+"QR-Code zum Teilen":"رمز QR للمشاركة","Markierung aufheben":"إلغاء التحديد","vorheriges Feld":"الحقل السابق","nächstes Feld":"الحقل التالي",
+"Wert eingeben":"إدخال قيمة","nein / abbrechen":"لا / إلغاء","ja / bestätigen":"نعم / تأكيد",
+"Produktionsablauf Maschine":"تسلسل إنتاج الآلة","Ablauf Editieren":"تحرير التسلسل","Ablauf editieren":"تحرير التسلسل","Symbol einfügen":"إدراج رمز",
+"Symbol verschieben":"نقل رمز","Symbol löschen":"حذف رمز","Startbedingung ändern":"تغيير شرط البدء","Antrieb umschalten":"تبديل المحرك",
+"Zweigende verschieben":"نقل نهاية الفرع","Grundablauf":"التسلسل الأساسي","Rückgängig":"تراجع","Fertig / Schließen":"تم / إغلاق",
+"Neues Symbol auswählen":"اختيار رمز جديد","Seriell einfügen (danach)":"إدراج متسلسل (بعده)","Seriell einfügen":"إدراج متسلسل","Parallel einfügen":"إدراج متوازٍ",
+"Seriell danach":"متسلسل بعده","Parallel dazu":"بالتوازي","ein Symbol früher":"رمزاً واحداً أبكر","ein Symbol später":"رمزاً واحداً أتأخر",
+"Bezug: markiertes Symbol":"المرجع: الرمز المحدد","Abbrechen":"إلغاء","Schließen":"إغلاق","Bestätigen":"تأكيد","Eingabe":"إدخال","Symbol":"رمز","alle":"الكل",
+"Einspritzeinheit":"وحدة الحقن","Ventile / Luft":"صمامات / هواء","Überwachungseingänge":"مداخل المراقبة",
+"Ablauf Start":"بداية التسلسل","Ablauf Ende":"نهاية التسلسل","Werkzeug schließen":"إغلاق القالب","Werkzeug öffnen":"فتح القالب","Nachdruck":"ضغط التثبيت",
+"Restkühlzeit":"زمن التبريد","Kühlzeit":"التبريد","Dekompression nach Dosieren":"تخفيف الضغط بعد التلقيم","Dekompression":"تخفيف الضغط",
+"Düse vorfahren":"تقديم الفوهة","Düse zurückfahren":"إرجاع الفوهة","Auswerfer vorfahren":"تقديم القاذف","Auswerfer zurückfahren":"إرجاع القاذف",
+"Auswerfer Rütteln":"هز القاذف","Auswerfer zurück mit Zwischenstopp":"إرجاع القاذف مع توقف مؤقت","Schutztür öffnen":"فتح باب الحماية","Schutztür schließen":"إغلاق باب الحماية",
+"Ausblasventil 1 Start":"صمام النفخ 1 بدء","Ausblasventil 1 Ende":"صمام النفخ 1 نهاية","Ausblasventil 1":"صمام النفخ 1",
+"Überwachung 1 Start (z. B. Ausdrehkern ausdrehen)":"المراقبة 1 بدء (مثلاً فك القلب)","Überwachung 1 Stopp (z. B. Ausdrehkern eindrehen)":"المراقبة 1 إيقاف (مثلاً ربط القلب)",
+"WZ zu":"قالب مغلق","WZ auf":"قالب مفتوح","Einspr.":"حقن","Nachdr.":"تثبيت","Dekomp.":"تخفيف","Düse vor":"فوهة للأمام","Düse zur.":"فوهة للخلف",
+"Ausw. vor":"قاذف للأمام","Ausw. zur.":"قاذف للخلف","Ausw. Stopp":"قاذف توقف","Rütteln":"الهز","Tür auf":"باب مفتوح","Tür zu":"باب مغلق","Blasen 1":"نفخ 1","Überw.1":"مراقبة 1",
+"Start":"بدء","Ende":"نهاية","Hydraulik/Antriebe":"الهيدروليك/المحركات","Formteil-Behälter":"حاوية القطع","Schutztür zu":"باب الحماية مغلق","Schutztür offen":"باب الحماية مفتوح",
+"Schutztür":"باب الحماية","bewegl. Platte":"اللوح المتحرك","feste Platte":"اللوح الثابت","Spritzeinheit":"وحدة الحقن","Düse angelegt":"الفوهة ملامسة","Düse abgehoben":"الفوهة مرفوعة",
+"Auswerfer hinten":"القاذف في الخلف","Auswerfer vorn":"القاذف في الأمام","Dosiert":"ملقّم","Zeitdiagramm":"مخطط الزمن","Zykluszeit":"زمن الدورة","Schließeinheit":"وحدة الإغلاق",
+"Kern":"القلب","Ausblasen":"النفخ","Elektrisch – separate Servoantriebe":"كهربائي – محركات سيرفو منفصلة","Prozessansicht – Werkzeug im Schnitt":"عرض العملية – مقطع القالب",
+"bewegliche Seite (Auswerferseite)":"الجانب المتحرك (جهة القاذف)","feste Seite (Düsenseite)":"الجانب الثابت (جهة الفوهة)","geschlossen":"مغلق","offen":"مفتوح","fährt":"يتحرك",
+"Füllung":"الملء","Formteiltemp.":"حرارة القطعة","Kühlung":"التبريد","Teile:":"القطع:","Wert antippen zum Bearbeiten":"اضغط على قيمة لتعديلها","Parameter antippen zum Bearbeiten":"اضغط على معامل لتعديله",
+"Berechnete Zeiten im Ablauf:":"الأزمنة المحسوبة في التسلسل:","Verzögerungszeit":"زمن التأخير","Bewegungszeit:":"زمن الحركة:","Bewegung – Vorschau":"الحركة – معاينة","Geschwindigkeit":"السرعة",
+"Stufe":"المرحلة","Hinweis":"ملاحظة","Endlage erreicht":"تم بلوغ الموضع النهائي","zurück in Ausgangslage":"العودة إلى وضع البدء","Verzögerung":"تأخير","Werkzeug zuhalten":"إبقاء القالب مغلقاً",
+"Schließkraft":"قوة الإغلاق","Schließkraftaufbau (Zuhalten)":"بناء قوة الإغلاق","Überwachung":"المراقبة","Werkzeugsicherung aktiv":"حماية القالب مفعّلة","Werkzeugsicherung":"حماية القالب",
+"Überwachungszeit Werkzeugsicherung":"زمن مراقبة حماية القالب","Zeit in Stufe WS:":"الزمن في مرحلة WS:","Kenngrößen Werkzeug":"بيانات القالب","Werkzeugeinbauhöhe":"ارتفاع تركيب القالب",
+"Länge Auswerferstange":"طول عمود القاذف","Anzahl Kavitäten":"عدد التجاويف","Formteilgewicht je Kavität":"وزن القطعة لكل تجويف","Gesamtschussgewicht":"الوزن الكلي للحقنة",
+"Materialverbrauch (Simulation)":"استهلاك المادة (محاكاة)","Werkzeugeinbauhöhe zulässig":"ارتفاع القالب المسموح","Öffnungsweg":"شوط الفتح","Auswerferweg":"شوط القاذف",
+"Auswerfer vor":"القاذف للأمام","Auswerfer zurück":"القاذف للخلف","Zwischenstopp / Rütteln":"توقف مؤقت / هز","Zwischenstopp-Position":"موضع التوقف المؤقت","Anzahl Rüttelhübe":"عدد مرات الهز",
+"Auswerfer bei Hand freigegeben":"القاذف مسموح يدوياً","Auswahl Düse":"اختيار الفوهة","Düse vor / zurück":"الفوهة للأمام / للخلف","Düse abheben bei Alarm":"رفع الفوهة عند الإنذار",
+"Verzögerungszeit Düse vor":"تأخير تقديم الفوهة","Düsenweg":"شوط الفوهة","Geschwindigkeit Düse":"سرعة الفوهة","Düsenanlagekraft":"قوة تلامس الفوهة","Umschaltung":"التحويل",
+"Umschaltp.":"نقطة التحويل","Dosiervol.":"حجم التلقيم","Polster":"الوسادة","Einspritzstrom":"تدفق الحقن","Druckbegrenzung":"حد الضغط","Ende Stufe (Weg)":"نهاية المرحلة (الشوط)",
+"Ende Stufe (Volumen)":"نهاية المرحلة (الحجم)","Ende Stufe":"نهاية المرحلة","Schnecke / Schneckenvorraum":"اللولب / الحيز أمام اللولب","Einspritzen – Kennwerte":"الحقن – القيم",
+"Umschaltung auf Nachdruck über":"التحويل إلى ضغط التثبيت حسب","Volumen":"الحجم","Druck":"الضغط","Zeit":"الزمن","Umschaltpunkt (Volumen)":"نقطة التحويل (حجم)",
+"Einspritzzeit:":"زمن الحقن:","Mittlerer Einspritzstrom:":"متوسط تدفق الحقن:","Benötigter Spritzdruck:":"ضغط الحقن المطلوب:","Grenze":"الحد","Umschaltdruck":"ضغط التحويل",
+"Umschaltzeit (max. Einspritzzeit)":"زمن التحويل (أقصى زمن حقن)","Verzögerungszeit Nachdruck":"تأخير ضغط التثبيت","Einspritzdruck":"ضغط الحقن","Nachdruck – Kennwerte":"ضغط التثبيت – القيم",
+"Nachdruckzeit gesamt:":"زمن التثبيت الكلي:","Mittlerer Nachdruck:":"متوسط ضغط التثبيت:","Siegelzeit Anschnitt":"زمن تجمد البوابة","Massepolster":"وسادة المصهور","Nachdruckzeit":"زمن التثبيت",
+"Spritzdruckbegrenzung":"حد ضغط الحقن","Auswahl Dosieren":"اختيار التلقيم","Dosieren / Dekomp. / Kühlen":"التلقيم / تخفيف الضغط / التبريد","Zylinder / Schnecke":"الأسطوانة / اللولب",
+"separater Staudruck bei Hand":"ضغط عكسي منفصل يدوياً","Dosierverzögerungszeit":"تأخير التلقيم","Umfangsgeschwindigkeit Schnecke":"السرعة المحيطية للولب","Umfangsgeschwindigkeit":"السرعة المحيطية",
+"Staudruck":"الضغط العكسي","Kühlen":"التبريد","nach Dosieren":"بعد التلقيم","vor und nach Dosieren":"قبل التلقيم وبعده","aus":"إيقاف","Dekompressionsstrom":"تدفق تخفيف الضغط",
+"Dekompressionsvolumen":"حجم تخفيف الضغط","Dekompressionszeit:":"زمن تخفيف الضغط:","Dosieren – Kennwerte":"التلقيم – القيم","Mittl. Drehmoment:":"متوسط العزم:","Dosierzeit:":"زمن التلقيم:",
+"Restkühlzeit:":"زمن التبريد:","Mittl. Umfangsgeschw.:":"متوسط السرعة المحيطية:","Dosiervolumen":"حجم التلقيم","Dosieren verzögert (Dosierverzögerung)":"تلقيم مؤخر",
+"Schneckendurchmesser D":"قطر اللولب D","Schneckendurchmesser":"قطر اللولب","Max. Dosierweg (Hub)":"أقصى شوط تلقيم","Max. Dosierweg":"أقصى شوط تلقيم","Schneckenlänge L/D":"طول اللولب L/D",
+"Schneckenlänge":"طول اللولب","Spritzeinheit – berechnete Kennwerte":"وحدة الحقن – قيم محسوبة","Schneckenquerschnitt":"مقطع اللولب","Max. Dosiervolumen":"أقصى حجم تلقيم","Max. Schussgewicht":"أقصى وزن حقنة",
+"Max. Spritzdruck":"أقصى ضغط حقن","Akt. Dosiervolumen":"حجم التلقيم الحالي","Drehzahl bei":"عدد الدورات عند","Ausnutzung Dosierhub":"استغلال شوط التلقيم","Auswahl Temperierung":"اختيار التحكم بالحرارة",
+"Sollwerte Zonen":"القيم المطلوبة للمناطق","Anzahl Heizzonen Zylinder (Ausrüstung: 5)":"عدد مناطق التسخين (التجهيز: 5)","Heizung Zylinder ein":"تسخين الأسطوانة تشغيل","Heizung Zylinder":"تسخين الأسطوانة",
+"Material":"المادة","Toleranzband Temperatur":"تفاوت الحرارة","Temperatur Düse":"حرارة الفوهة","Temperatur Zone 4 (vorn)":"حرارة المنطقة 4 (أمام)","Temperatur Zone 3":"حرارة المنطقة 3",
+"Temperatur Zone 2":"حرارة المنطقة 2","Temperatur Zone 1 (Einzug)":"حرارة المنطقة 1 (التغذية)","Temperatur Einzugsflansch":"حرارة شفة التغذية","Temperatur im Toleranzband":"الحرارة ضمن التفاوت",
+"Plastifizierzylinder – Temperaturzonen (Soll antippen zum Ändern)":"أسطوانة التلدين – مناطق الحرارة (اضغط القيمة المطلوبة للتغيير)","Soll":"مطلوب","Zone":"منطقة","Einzug":"التغذية","Trichter":"القمع",
+"Antrieb":"المحرك","Kühlwasser":"ماء التبريد","Werkzeugtemperierung":"التحكم بحرارة القالب","Werkzeugtemperatur":"حرارة القالب","Kühlwasser ein":"ماء التبريد تشغيل","Kühlwasser Werkzeug":"ماء تبريد القالب",
+"Ventile":"الصمامات","Bewegungszeit Schutztür":"زمن حركة باب الحماية","Blaszeit Ausblasventil 1":"زمن النفخ 1","Überwachung 1 aktiv":"المراقبة 1 مفعّلة","Überwachungszeit Eingang 1 (Kern)":"زمن مراقبة المدخل 1 (القلب)",
+"Formteil-Daten":"بيانات القطعة","Formteil-Geometrie":"شكل القطعة","Becher":"كوب","Platte":"لوح","Deckel":"غطاء","Länge":"الطول","Breite":"العرض","Höhe":"الارتفاع","Wanddicke":"سماكة الجدار",
+"Angussvolumen":"حجم المجرى","Volumen je Teil:":"الحجم لكل قطعة:","Schussvolumen:":"حجم الحقنة:","Gewicht:":"الوزن:","Formteilqualität nach dem Zyklus":"جودة القطعة بعد الدورة","Gutteil":"قطعة سليمة",
+"Ausschuss":"مرفوض","Fehlerbild(er)":"عيب/عيوب","Füllgrad":"درجة الملء","Schussvolumen":"حجم الحقنة","Gewicht je Formteil":"وزن القطعة","Schussgewicht":"وزن الحقنة","Schwindung":"الانكماش",
+"Erf. Schließkraft":"قوة الإغلاق المطلوبة","Eingestellt":"المضبوط","Erf. Kühlzeit":"زمن التبريد المطلوب","Ist (Nachdr.+Kühlz.)":"الفعلي (تثبيت+تبريد)","Spritzdruck / Grenze":"ضغط الحقن / الحد",
+"Fehlerbilder":"العيوب","Keine Fehler – Prozess im Gutbereich.":"لا عيوب – العملية سليمة.","Ursache:":"السبب:","Abhilfe:":"العلاج:","kein Teil":"لا قطعة","leicht":"خفيف","Kein Formteil":"لا توجد قطعة",
+"Unvollständig gefüllt":"ملء ناقص","Einfallstellen / Lunker":"انخفاضات / فراغات","Einfallstellen (Druckeinbruch)":"انخفاضات (هبوط الضغط)","Kein Massepolster":"لا توجد وسادة",
+"Grat / Überspritzung":"زوائد / فائض حقن","Entformungsprobleme / Eigenspannungen":"مشاكل الإخراج / إجهادات داخلية","Verzug / Formteil zu warm entformt":"التواء / القطعة أُخرجت ساخنة",
+"Kühlzeit unnötig lang":"زمن التبريد طويل بلا داعٍ","Maßabweichung durch Schwindung":"انحراف الأبعاد بسبب الانكماش","Brandstellen / Verfärbung":"احتراق / تغير اللون","Fließlinien / matte Oberfläche":"خطوط تدفق / سطح باهت",
+"Brandstellen (Dieseleffekt)":"احتراق (تأثير الديزل)","Fließlinien / kalte Fließfront":"خطوط تدفق / جبهة باردة","Schlieren / Lufteinschlüsse":"خطوط / فقاعات هواء","Verfärbung":"تغير اللون",
+"Matte Oberfläche / Spannungen":"سطح باهت / إجهادات","Auswerferabdrücke / Weißbruch":"آثار القاذف / ابيضاض","Formteil verformt beim Öffnen":"تشوه القطعة عند الفتح",
+"Unaufgeschmolzene Partikel / Schlieren":"جزيئات غير منصهرة / خطوط","Verfärbung durch lange Verweilzeit":"تغير اللون بسبب طول البقاء","Umschaltdruck nie erreicht":"لم يتم بلوغ ضغط التحويل",
+"Druckspitze beim Umschalten":"ذروة ضغط عند التحويل","Qualitätsüberwachung aktiv":"مراقبة الجودة مفعّلة","Qualitätsüberwachung":"مراقبة الجودة","Funktionsüberwachung":"مراقبة الوظائف",
+"Größe":"الكمية","aktiv":"مفعّل","Istwert":"القيمة الفعلية","Referenz":"المرجع","Toleranz ±":"التفاوت ±","Status":"الحالة","außerhalb":"خارج الحدود","Umschaltvolumen":"حجم التحويل",
+"Einspritzzeit":"زمن الحقن","Dosierzeit":"زمن التلقيم","Formteilgewicht":"وزن القطعة","Istwerte als Referenz übernehmen":"اعتماد القيم الفعلية كمرجع","Gutteile:":"السليمة:","Ausschuss:":"المرفوضة:",
+"(Qualitätsweiche)":"(فرز الجودة)","Grenzwert":"القيمة الحدية","Folgefunktion":"الإجراء التالي","Max. Einspritzzeit":"أقصى زمن حقن","Max. Dosierzeit":"أقصى زمن تلقيم","Max. Zykluszeit":"أقصى زمن دورة",
+"sofortiger Maschinenstopp":"إيقاف فوري للآلة","Stopp am Zyklusende":"إيقاف في نهاية الدورة","nur Meldung":"رسالة فقط","Unterschied:":"الفرق:","Folgefunktion antippen zum Umschalten":"اضغط الإجراء لتغييره",
+"Istwerte / Prozessprotokoll":"القيم الفعلية / سجل العملية","Spritzdruck (berechnet)":"ضغط الحقن (محسوب)","Massepolster (berechnet)":"الوسادة (محسوبة)","Gutteile / Ausschuss":"سليمة / مرفوضة",
+"Zykluszeit Soll":"زمن الدورة المطلوب","Gutteile gesamt":"إجمالي القطع السليمة","Spritzdruck":"ضغط الحقن","Noch keine Zyklen gefahren.":"لم تُشغّل أي دورة بعد.","Istwerte der letzten 15 Zyklen":"القيم الفعلية لآخر 15 دورة",
+"Einrichtprotokoll":"سجل الضبط","Datum / Zeit":"التاريخ / الوقت","Ebene":"المستوى","Änderung":"التغيير","Protokoll löschen":"مسح السجل","Einträge":"إدخالات","Programmverwaltung":"إدارة البرامج",
+"Programm":"البرنامج","Schnecke":"اللولب","I – Produktionsebene":"I – مستوى الإنتاج","läuft auf der Maschine":"يعمل على الآلة","V – Vorbereitungsebene":"V – مستوى التحضير","nächster Auftrag":"الطلب التالي",
+"– leer –":"– فارغ –","leer":"فارغ","Programmname ändern":"تغيير اسم البرنامج","Kopieren I → V":"نسخ I → V","Kopieren V → I":"نسخ V → I","Tauschen I ⇄ V":"تبديل I ⇄ V",
+"Datenträger (virtuelle Speicherkarte)":"وسيط التخزين (بطاقة ذاكرة افتراضية)","Datensatz":"مجموعة البيانات","gespeichert":"محفوظ","laden → I":"تحميل → I","löschen":"حذف","Ebene I auf Datenträger speichern":"حفظ المستوى I على الوسيط",
+"Bedienerberechtigung":"صلاحيات المشغّل","Bedienername":"اسم المشغّل","Schüler":"طالب","Berechtigungsstufe":"مستوى الصلاحية","Berechtigung":"الصلاحية","nur Anzeige":"عرض فقط","Einrichter":"فني الضبط","Superuser":"مستخدم متميز",
+"darf":"يسمح له","nur anzeigen, Maschine starten/stoppen":"عرض فقط، تشغيل/إيقاف الآلة","Restkühlzeit, Temperaturen":"زمن التبريد، الحرارة","alle Prozessparameter, Ablauf editieren":"كل معاملات العملية، تحرير التسلسل",
+"Nr.":"رقم","Meldung":"رسالة","Keine Meldungen.":"لا توجد رسائل.","Alle quittieren":"تأكيد الكل","Liste leeren":"مسح القائمة","quittiert":"مؤكد","→ Feld":"→ الحقل","Wartung Maschine":"صيانة الآلة",
+"Betriebsstunden Automatik:":"ساعات التشغيل الآلي:","Zyklen gesamt:":"إجمالي الدورات:","Schmierintervall Kniehebel":"فترة تشحيم الذراع","Wartungspunkt":"بند الصيانة","Intervall":"الفترة","Rest":"المتبقي",
+"fällig!":"مستحق!","erledigt":"تم","Schließeinheit: Kniehebel / Antriebsplatte schmieren":"وحدة الإغلاق: تشحيم الذراع / لوح الدفع","Schließeinheit: Auswerferplatte schmieren":"وحدة الإغلاق: تشحيم لوح القاذف",
+"Holmführungen reinigen und schmieren":"تنظيف وتشحيم أعمدة التوجيه","Hydrauliköl und Filter prüfen":"فحص الزيت الهيدروليكي والمرشح","Wartungslogbuch":"سجل الصيانة","Beschreibung":"الوصف","Name":"الاسم",
+"Wartung quittieren erfordert Stufe 3":"تأكيد الصيانة يتطلب المستوى 3","Ausgänge (Ventile)":"المخارج (الصمامات)","Eingänge (Schalter)":"المداخل (المفاتيح)","Schneckenantrieb Dosieren":"محرك اللولب للتلقيم",
+"Kern ausdrehen":"فك القلب","Kern eindrehen":"ربط القلب","Werkzeug geschlossen":"القالب مغلق","Werkzeug offen":"القالب مفتوح","Düse vorn (angelegt)":"الفوهة أمام (ملامسة)","Düse hinten":"الفوهة خلف",
+"Schnecke dosiert":"اللولب ملقّم","Schutztür geschlossen":"باب الحماية مغلق","Kern eingedreht":"القلب مربوط","Kern ausgedreht":"القلب مفكوك","Werkzeugsicherung i. O.":"حماية القالب سليمة",
+"Maschine / Antrieb / Werkzeug-Optionen":"الآلة / المحرك / خيارات القالب","Maschinen-Nr.":"رقم الآلة","Typ":"النوع","Antriebskonzept (Parallelbewegungen!)":"نظام الدفع (حركات متوازية!)","Werkzeug / Prozess":"القالب / العملية",
+"Parameter zurücksetzen":"إعادة ضبط المعاملات","Adresse kopieren":"نسخ العنوان","Als Bild speichern":"حفظ كصورة","Drucken":"طباعة","QR-Code zum Trainer":"رمز QR للمدرّب",
+"Aufgaben – Zyklusablauf einer SGM":"تمارين – دورة آلة الحقن","Aufgabe":"تمرين","Ausdrehkern":"قلب ملولب","schneller":"أسرع","Starten":"ابدأ","Prüfen":"تحقق","Lösung laden":"تحميل الحل","gelöst":"محلول",
+"Erkenntnis":"الاستنتاج","Antworten zeigen":"إظهار الإجابات","Bedienung":"التشغيل","Simulation":"المحاكاة","ja":"نعم","nein":"لا","Keine Berechtigung":"لا توجد صلاحية",
+"Datenfehler, Wert kleiner als Minimum":"خطأ بيانات، القيمة أقل من الحد الأدنى","Datenfehler, Wert größer als Maximum":"خطأ بيانات، القيمة أكبر من الحد الأقصى","Wert übernommen":"تم قبول القيمة",
+"Kaltstartschutz":"حماية التشغيل البارد","Zwischenstopp: Einlegeteil einlegen, dann „Weiter“ drücken":"توقف مؤقت: ضع القطعة ثم اضغط «Weiter»","Ablauf plausibel – keine Meldungen.":"التسلسل سليم – لا رسائل.",
+"Meldungen / Plausibilitätsprüfung":"الرسائل / فحص المنطقية"
+};
+
 const LANGIDX={de:0,ru:1,en:2,pl:3,it:4,sr:5};
 let LANG='de'; try{ LANG=localStorage.getItem('sgmLang')||'de'; }catch(e){}
 if(!LANGS[LANG]) LANG='de';
 const TR_EX=new Map(), TR_PH=[], TR_CACHE=new Map();
 (function(){
   if(LANG==='de') return;
-  const li=LANGIDX[LANG];
-  I18N.forEach(r=>{ if(r[li]) TR_EX.set(r[0],r[li]); });
+  if(LANG==='ar') Object.entries(I18N_AR).forEach(([k,v])=>TR_EX.set(k,v));
+  else { const li=LANGIDX[LANG]; I18N.forEach(r=>{ if(r[li]) TR_EX.set(r[0],r[li]); }); }
   const esc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const EXONLY=new Set(['aus','Ist','Start','Ende','Zone','Soll','Name','Typ','Rest','Zeit','Druck','leer','alle','ja','nein','Kern','Düse','Stufe','Ebene','Antrieb','Material','Programm','Meldung']);
   [...TR_EX.entries()].filter(([de])=>de.length>=3 && /\p{L}/u.test(de) && !EXONLY.has(de)).sort((a,b)=>b[0].length-a[0].length)
@@ -3360,6 +3478,7 @@ function trNode(n){
 }
 function i18nStart(){
   document.documentElement.lang=LANG;
+  if(LANG==='ar') document.documentElement.dir='rtl';
   if(LANG==='de') return;
   trNode(document.body);
   new MutationObserver(ms=>{ for(const m of ms){
@@ -5601,54 +5720,54 @@ function renderProcess(){
     <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#8a949c" stroke-width="1"/></pattern></defs>`;
   o+=`<rect x="0" y="0" width="760" height="400" fill="#f4f6f8"/>`;
   // Feste Seite (Düsenseite)
-  o+=`<g><path d="M${PL} 60H500V340H${PL}V232H${PL+60}V88H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2" style="fill:#c5ccd2"/>
-      <path d="M${PL} 60H500V340H${PL}V232H${PL+60}V88H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2"/>
+  o+=`<g><path d="M${PL} 60H500V340H${PL}V272H${PL+60}V128H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2" style="fill:#c5ccd2"/>
+      <path d="M${PL} 60H500V340H${PL}V272H${PL+60}V128H${PL}Z" fill="url(#hatch)" stroke="#59646d" stroke-width="2"/>
       <rect x="500" y="40" width="30" height="320" fill="#53a08e" stroke="#2f6b5d"/>
-      <rect x="${PL+60}" y="156" width="${500-(PL+60)+30}" height="8" fill="#eee" stroke="#777"/>`;
+      <rect x="${PL+60}" y="196" width="${500-(PL+60)+30}" height="8" fill="#eee" stroke="#777"/>`;
   // Kühlkanäle
   const cw=S.cool?'#1e88e5':'#90caf9';
-  [[440,110],[440,290],[470,200]].forEach(([x,y])=>o+=`<circle cx="${x}" cy="${y}" r="9" fill="${cw}" stroke="#1565c0"/>`);
+  [[440,110],[440,290],[470,140],[470,260]].forEach(([x,y])=>o+=`<circle cx="${x}" cy="${y}" r="9" fill="${cw}" stroke="#1565c0"/>`);
   o+=`<text x="430" y="355" font-size="12" fill="#455">feste Seite (Düsenseite)</text></g>`;
   // Bewegliche Seite mit Kern
   o+=`<g transform="translate(${-open} 0)">
-      <path d="M${PL} 60H150V340H${PL}V220H${PL+48}V100H${PL}Z" fill="#c5ccd2" stroke="#59646d" stroke-width="2"/>
-      <path d="M${PL} 60H150V340H${PL}V220H${PL+48}V100H${PL}Z" fill="url(#hatch)"/>
+      <path d="M${PL} 60H150V340H${PL}V260H${PL+48}V140H${PL}Z" fill="#c5ccd2" stroke="#59646d" stroke-width="2"/>
+      <path d="M${PL} 60H150V340H${PL}V260H${PL+48}V140H${PL}Z" fill="url(#hatch)"/>
       <rect x="120" y="40" width="30" height="320" fill="#e0c13a" stroke="#8a7410"/>`;
   [[200,110],[200,290],[250,200]].forEach(([x,y])=>o+=`<circle cx="${x}" cy="${y}" r="9" fill="${cw}" stroke="#1565c0"/>`);
-  if(tool.core) o+=`<g transform="translate(${PL+24} 160)"><rect x="-24" y="-8" width="48" height="16" fill="#3949ab" opacity=".85"/><text x="0" y="4" font-size="10" fill="#fff" text-anchor="middle">Kern ${S.core>0.5?'aus':'ein'}</text></g>`;
+  if(tool.core) o+=`<g transform="translate(${PL+24} 200)"><rect x="-24" y="-8" width="48" height="16" fill="#3949ab" opacity=".85"/><text x="0" y="4" font-size="10" fill="#fff" text-anchor="middle">Kern ${S.core>0.5?'aus':'ein'}</text></g>`;
   // Auswerferstifte
-  o+=`<g fill="#b3261e"><rect x="${70+ejx}" y="120" width="14" height="120"/><rect x="${84+ejx}" y="126" width="${PL+48-84-12}" height="6"/><rect x="${84+ejx}" y="228" width="${PL+48-84-12}" height="6"/></g>
+  o+=`<g fill="#b3261e"><rect x="${70+ejx}" y="140" width="14" height="120"/><rect x="${84+ejx}" y="164" width="${PL+48-84-12}" height="6"/><rect x="${84+ejx}" y="230" width="${PL+48-84-12}" height="6"/></g>
       <text x="160" y="355" font-size="12" fill="#455">bewegliche Seite (Auswerferseite)</text></g>`;
   // Formteil
   if(P.has){
     let dx=0, dy=0, rot=0;
     if(P.side!=='fixed') dx=-open+ejx;
-    if(P.fallAt!==null && live && t>=P.fallAt){ const f=Math.min(1,(t-P.fallAt)/0.7); dy=f*f*150; rot=f*80; dx+= -f*20; }
+    if(P.fallAt!==null && live && t>=P.fallAt){ const f=Math.min(1,(t-P.fallAt)/0.7); dy=f*f*110; rot=f*80; dx+= -f*20; }
     const hide = P.fallAt!==null && (!live || t>=P.fallAt+0.7);
     if(!hide){
       const col=partColor(P.temp);
-      const shape=`M${PL} 88H${PL+60}V232H${PL}V220H${PL+48}V100H${PL}Z`;
-      o+=`<g transform="translate(${dx} ${dy}) rotate(${rot} ${PL+30} 160)"><path d="${shape}" fill="${col}" stroke="#333" ${P.fill<1?'clip-path="url(#fillClip)"':''}/></g>`;
-      if(P.stuck && !(P.fallAt!==null && t>=P.fallAt)) o+=`<text x="${PL-60+dx}" y="80" font-size="12" fill="#b3261e">haftet!</text>`;
+      const shape=`M${PL} 128H${PL+60}V272H${PL}V260H${PL+48}V140H${PL}Z`;
+      o+=`<g transform="translate(${dx} ${dy}) rotate(${rot} ${PL+30} 200)"><path d="${shape}" fill="${col}" stroke="#333" ${P.fill<1?'clip-path="url(#fillClip)"':''}/></g>`;
+      if(P.stuck && !(P.fallAt!==null && t>=P.fallAt)) o+=`<text x="${PL-60+dx}" y="120" font-size="12" fill="#b3261e">haftet!</text>`;
     }
   }
   // Schmelze im Anguss
   const injAct=SCH.items.some(x=>(x.t==='inject'||x.t==='hold')&&t>=x.t0&&t<x.t1);
-  if(injAct||S.noz>0.95&&P.has&&P.fill<1) o+=`<rect x="${PL+60}" y="157" width="${500-(PL+60)+30}" height="6" fill="#ff8a3d"/>`;
+  if(injAct||S.noz>0.95&&P.has&&P.fill<1) o+=`<rect x="${PL+60}" y="197" width="${500-(PL+60)+30}" height="6" fill="#ff8a3d"/>`;
   // Düse / Spritzeinheit
-  o+=`<g transform="translate(${nozx} 0)"><path d="M530 160l24-14h40v28h-40z" fill="#8d969e" stroke="#555"/>
+  o+=`<g transform="translate(${nozx} 40)"><path d="M530 160l24-14h40v28h-40z" fill="#8d969e" stroke="#555"/>
       <rect x="594" y="134" width="170" height="52" fill="#dfe3e6" stroke="#555"/>
       <rect x="598" y="140" width="${30+Math.min(1.1,S.screw)*60}" height="40" fill="#ff8a3d" opacity=".9"/>
       ${[0,1,2].map(i=>`<rect x="${612+i*48}" y="130" width="30" height="60" fill="#c0392b" opacity=".7"/>`).join('')}
       ${S.drool&&S.noz<0.9?`<path d="M532 162q-4 16 0 30q5 -14 0 -30" fill="#ff8a3d" stroke="#c0392b"/>`:''}</g>`;
   // Ausblasen
-  if(S.blow) o+=`<g stroke="#00897b" stroke-width="3" fill="none">${[110,160,210].map(y=>`<path d="M${PL+58} ${y}q-30 -10 -60 0"/>`).join('')}</g>`;
+  if(S.blow) o+=`<g stroke="#00897b" stroke-width="3" fill="none">${[150,200,250].map(y=>`<path d="M${PL+58} ${y}q-30 -10 -60 0"/>`).join('')}</g>`;
   // Behälter + Teile
   const n=Math.min(sim.parts,24);
   o+=`<rect x="190" y="372" width="260" height="26" fill="#b9c2c9" stroke="#7d8790"/>`;
   for(let i=0;i<n;i++) o+=`<rect x="${196+(i%12)*21}" y="${388-Math.floor(i/12)*9}" width="17" height="7" fill="#5c8fc7" stroke="#333" stroke-width=".5"/>`;
   o+=`<text x="460" y="390" font-size="12" fill="#333">Teile: ${sim.parts}</text>`;
-  $('procSvg').innerHTML=o;
+  $('procSvg').innerHTML=`<g transform="translate(-14 0)">${o}</g>`;
   $('procPhase').textContent=phaseName(t);
   $('procTime').textContent=(live?t:0).toFixed(2).replace('.',',')+' / '+SCH.T.toFixed(2).replace('.',',')+' s';
   const temp=P.has?Math.round(lerp(pv('P520'),pv('P511'),P.temp)):'–';
