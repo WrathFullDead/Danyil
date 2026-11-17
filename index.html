@@ -2,7 +2,16 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Lern-Simulator für den Zyklusablauf und die Einstellung einer Spritzgießmaschine – Ablauf editieren, Parameter einstellen, Formteilqualität beurteilen.">
+<meta name="theme-color" content="#3d444c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SGM-Trainer">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>SGM Zyklus-Trainer – virtuelle Steuerung</title>
 <style>
 :root{--bg:#bfc4c8;--frame:#5f666d;--tile:#c9cdd1;--tileB:#8f969c;--blue:#2f73c9;--yellow:#f2c230;--green:#2fae5a;--err:#c62828;--warn:#f2c230}
@@ -228,11 +237,53 @@ td.istv{color:#2e7d32;font-weight:700}
   #body{grid-template-columns:1fr 58px}
   .sd{width:50px;height:50px;font-size:18px}
 }
+/* ---------- Telefon ---------- */
+html,body{overscroll-behavior:none}
+#app{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);padding-bottom:env(safe-area-inset-bottom)}
+@media (max-width:640px){
+  #title{display:none}
+  #app{padding-top:env(safe-area-inset-top)}
+  #head{grid-template-columns:1fr;gap:3px}
+  .modes{grid-row:auto;justify-content:flex-start}
+  .mode{width:44px;height:40px;font-size:17px}
+  #alarm{font-size:13px;min-height:32px}
+  #vals .v{flex:1 1 30%;font-size:11px}
+  #vals b{font-size:12px}
+  #body{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:3px;padding:3px}
+  #side{flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:3px}
+  #grpSw{flex-direction:column;justify-content:center}
+  #grpSw button{width:40px;height:14px}
+  .sd{width:52px;height:46px;font-size:17px}
+  .sd.sp{margin-top:0;margin-left:auto}
+  .irow{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pg{width:54px;height:48px;flex-shrink:0;font-size:8px}
+  .pg.sub{min-width:70px}
+  .pgh{font-size:14px}
+  .plist{padding:6px;overflow-x:auto}
+  .prow{grid-template-columns:1fr 104px 36px;gap:6px;padding:5px 4px}
+  .prow .pn{text-align:left;font-size:13px}
+  .pval{height:38px;font-size:15px;padding:0 6px}
+  .profwrap{padding:6px}
+  .profL{overflow-x:auto}
+  .ptab{min-width:420px}
+  .prow3{grid-template-columns:1fr 84px 40px}
+  table.mon,table.qt,table.cfg{font-size:12px}
+  .pval.wide{min-width:140px}
+  #foot{flex-wrap:wrap;gap:5px;padding:4px}
+  #symInfo{font-size:13px;flex-basis:100%;white-space:normal}
+  .bq{width:46px;height:40px;font-size:18px}
+  .bq.big{width:52px;height:44px;font-size:22px}
+  #edit{left:4px!important;right:4px;width:auto!important;top:8px!important}
+  .eb{height:42px;font-size:14px}
+  .dbox{width:98vw!important;max-height:94vh}
+  .keys button{height:44px}
+  #flowWrap{min-height:170px}
+}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="title"><span class="ico"></span><span>SGM-Trainer extern <span id="machName"></span></span></div>
+  <div id="title"><span class="ico"></span><span>SGM-Trainer <span id="machName"></span></span><a href="datenschutz.html" style="margin-left:auto;color:#555;font-size:11px">Datenschutz</a></div>
   <div id="head">
     <div class="modes">
       <button class="mode" id="bReset" title="Einrichten / Grundstellung, Alarme quittieren">⌂</button>
@@ -552,7 +603,7 @@ const DRIVES = {
   elec: {n:'Elektrisch – separate Servoantriebe'}
 };
 let cfg = {
-  drive:'elec', machNo:'231969', machType:'370 E 600-290',
+  drive:'elec', machNo:'0001', machType:'Lernmaschine 600 kN / 290',
   tool:{stickEj:false,stickNozzle:false,insert:false,sprue:false,core:false},
 };
 let prog = parse(GRUND);
@@ -2701,6 +2752,9 @@ setAlarm('ok','Grundstellung – bereit');
 TZ.forEach(z=>tIst[z]=pv(z));
 renderAll(); renderPages();
 requestAnimationFrame(tick);
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
+  try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
+}
 </script>
 </body>
 </html>

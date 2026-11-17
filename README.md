@@ -19,3 +19,14 @@ Lern-Simulator für den **Zyklusablauf einer Spritzgießmaschine (SGM)** – pas
 - **Antriebskonzepte**: 1 Hydraulikpumpe (keine Parallelbewegungen), Hydrospeicher/Mehrkreis, elektrisch.
 - **Aufgaben 1–8 + Ausdrehkern-Varianten** mit „Prüfen“ und „Lösung laden“, inkl. Erkenntnis-Fragen.
 - Speicherung im Browser, Export/Import als JSON.
+
+## Als Webseite veröffentlichen (Cloudflare Pages, kostenlos)
+Die Seite ist eine **PWA**: auf Handy/Tablet über „Zum Home-Bildschirm“ installierbar, läuft danach auch offline.
+
+1. Auf <https://dash.cloudflare.com> kostenlos registrieren.
+2. **Workers & Pages → Erstellen → Pages → Mit Git verbinden** → GitHub verbinden → Repository `Danyil` wählen.
+3. Projektname: `sgm-trainer` (ergibt `https://sgm-trainer.pages.dev`, falls der Name frei ist).
+4. Produktionszweig: den Zweig mit diesem Code wählen. Framework: **Keins**, Build-Befehl: **leer lassen**, Ausgabeverzeichnis: **`/`**.
+5. **Speichern und bereitstellen.** Jede neue Version auf diesem Zweig wird automatisch veröffentlicht.
+
+Dateien: `index.html` (Trainer), `manifest.webmanifest` + `sw.js` (App/Offline), `icons/`, `datenschutz.html`, `_headers` (Cache-Regeln).
