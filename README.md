@@ -30,3 +30,5 @@ Die Seite ist eine **PWA**: auf Handy/Tablet über „Zum Home-Bildschirm“ ins
 5. **Speichern und bereitstellen.** Jede neue Version auf diesem Zweig wird automatisch veröffentlicht.
 
 Dateien: `index.html` (Trainer), `manifest.webmanifest` + `sw.js` (App/Offline), `icons/`, `datenschutz.html`, `_headers` (Cache-Regeln).
+
+QR-Code-Erzeugung: qrcode-generator von Kazuhiko Arase (MIT-Lizenz), eingebettet in `index.html`.
