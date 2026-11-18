@@ -406,6 +406,38 @@ body.th-signal{background:#111}
 .th-signal #edit,.th-signal .dbox{border:3px solid #111;border-radius:12px;overflow:hidden}.th-signal #edit .eh,.th-signal .dh{background:#111;color:#ffd400}
 .th-signal .eb{background:#fff;color:#111;border:2px solid #111;border-radius:10px;font-weight:800;box-shadow:none}
 .th-signal .dbtn{border:2px solid #111;border-radius:8px;font-weight:800}.th-signal .dbtn.pri{background:#111;color:#ffd400}
+
+/* ---------- Tablet: kompakter Kopf, Fokus-Ansicht ---------- */
+@media (min-width:641px) and (max-height:1100px), (min-width:641px) and (max-width:1366px){
+  #title{display:none}
+  #head{grid-template-columns:auto 1fr;gap:3px;padding:3px 3px 0}
+  .logo{display:none}
+  .modes{grid-row:span 2}
+  .mode{width:46px;height:46px;font-size:19px}
+  #alarm{font-size:13px;padding:2px 8px;min-height:24px}
+  #vals .sb{height:24px;font-size:12px;padding:0 6px}
+  #vals select{height:24px}
+  #vals{flex-wrap:wrap}#vals .v{font-size:11px;padding:1px 6px;flex:1 1 120px;min-width:120px}#vals b{font-size:12px}
+  #body{padding:3px;gap:3px}
+  .irow{flex-wrap:nowrap;overflow-x:auto;padding:3px;gap:3px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .pg{width:54px;height:44px;flex-shrink:0;font-size:8px;padding:1px}
+  .pg svg{width:26px;height:26px}
+  .pg.sub{min-width:64px}
+  .ph{font-size:13px;padding:2px 8px}
+  .pgh{font-size:14px;padding:3px 10px}
+  #foot{padding:3px 6px}
+  .bq{width:44px;height:38px;font-size:18px}.bq.big{width:50px;height:40px;font-size:22px}
+  #symInfo{font-size:13px}
+  #side{padding:3px;gap:3px}
+  .sd{width:58px;height:48px;font-size:18px}
+  #grpSw button{width:58px;height:16px}
+}
+body.focus #title, body.focus .modes, body.focus .logo, body.focus #vals, body.focus #pages1, body.focus #pages2{display:none!important}
+body.focus #head{grid-template-columns:1fr;padding:2px}
+body.focus #alarm{min-height:22px;font-size:12px}
+#focusBtn{position:fixed;top:calc(4px + env(safe-area-inset-top));right:6px;z-index:15;display:none;width:38px;height:30px;border-radius:6px;border:1px solid #333;background:rgba(255,255,255,.9);font-size:18px}
+body.focus #focusBtn{display:block}
+#mach{max-height:calc(100vh - 260px)}
 </style>
 </head>
 <body>
@@ -484,6 +516,8 @@ body.th-signal{background:#111}
       <button class="sd y" id="bExport" title="Ablauf speichern">⭳<small>Export</small></button>
       <button class="sd" id="bImport" title="Ablauf laden">⭱<small>Import</small></button>
       <input type="file" id="fileIn" accept=".json,application/json" hidden>
+      <button class="sd" id="sFocus" title="Ansicht: Kopfbereich aus-/einblenden">⤢<small>Ansicht</small></button>
+      <button class="sd" id="sFull" title="Vollbild">⛶<small>Vollbild</small></button>
       <button class="sd" id="sQR" title="QR-Code zum Teilen">▦<small>QR-Code</small></button>
       <button class="sd sp" id="sBack" title="Markierung aufheben">←</button>
       <button class="sd" id="bHelp" title="Hilfe">i</button>
@@ -603,6 +637,7 @@ body.th-signal{background:#111}
   <div class="db"><div id="langList" class="langlist"></div><div class="hint" style="padding:8px 0 0">Kurze Bedienelemente werden übersetzt, längere Erklärungen und die Aufgabentexte bleiben auf Deutsch.</div></div>
 </div></div>
 
+<button id="focusBtn" title="Menü einblenden">☰</button>
 <div id="toast"></div>
 <script>
 //---------------------------------------------------------------------
@@ -2914,6 +2949,10 @@ var qrcode = function() {
 const LANGS={de:'Deutsch',ru:'Русский',en:'English',pl:'Polski',it:'Italiano',sr:'Srpski',ar:'العربية'};
 const LANGFLAG={de:'🇩🇪',ru:'🇷🇺',en:'🇬🇧',pl:'🇵🇱',it:'🇮🇹',sr:'🇷🇸',ar:'ع'};
 const I18N=[
+["Ansicht","Вид","View","Widok","Vista","Prikaz"],["Vollbild","Полный экран","Fullscreen","Pełny ekran","Schermo intero","Ceo ekran"],
+["Ansicht: Kopfbereich aus-/einblenden","Вид: скрыть/показать верхнюю панель","View: hide/show header","Widok: ukryj/pokaż nagłówek","Vista: nascondi/mostra intestazione","Prikaz: sakrij/prikaži zaglavlje"],
+["Menü einblenden","Показать меню","Show menu","Pokaż menu","Mostra menu","Prikaži meni"],
+["Vollbild hier nicht möglich – als App zum Home-Bildschirm hinzufügen","Полный экран здесь недоступен – добавьте приложение на экран «Домой»","Fullscreen not available here – add the app to the home screen","Pełny ekran niedostępny – dodaj aplikację do ekranu głównego","Schermo intero non disponibile – aggiungi l'app alla schermata Home","Ceo ekran nije dostupan – dodaj aplikaciju na početni ekran"],
 ["Auswahl Schließeinheit","Выбор: узел смыкания","Clamping unit selection","Wybór jednostki zamykania","Selezione gruppo chiusura","Izbor jedinice zatvaranja"],
 ["Schließsystem","Система смыкания","Clamping system","System zamykania","Sistema di chiusura","Sistem zatvaranja"],
 ["Kniehebel","Коленчатый рычаг","Toggle","Dźwignia kolanowa","Ginocchiera","Kolenasta poluga"],
@@ -3503,7 +3542,7 @@ const I18N_AR={
 "Überwachung 1 Start (z. B. Ausdrehkern ausdrehen)":"المراقبة 1 بدء (مثلاً فك القلب)","Überwachung 1 Stopp (z. B. Ausdrehkern eindrehen)":"المراقبة 1 إيقاف (مثلاً ربط القلب)",
 "WZ zu":"قالب مغلق","WZ auf":"قالب مفتوح","Einspr.":"حقن","Nachdr.":"تثبيت","Dekomp.":"تخفيف","Düse vor":"فوهة للأمام","Düse zur.":"فوهة للخلف",
 "Ausw. vor":"قاذف للأمام","Ausw. zur.":"قاذف للخلف","Ausw. Stopp":"قاذف توقف","Rütteln":"الهز","Tür auf":"باب مفتوح","Tür zu":"باب مغلق","Blasen 1":"نفخ 1","Überw.1":"مراقبة 1",
-"Start":"بدء","Ende":"نهاية","Hydraulik/Antriebe":"الهيدروليك/المحركات","Formteil-Behälter":"حاوية القطع","Auswahl Schließeinheit":"اختيار وحدة الإغلاق","Schließsystem":"نظام الإغلاق","Kniehebel":"ذراع مفصلي","Hydraulisch":"هيدروليكي","Schließzylinder":"أسطوانة الإغلاق","Vollhydraulische Schließeinheit":"وحدة إغلاق هيدروليكية بالكامل","Kniehebel-Schließeinheit":"وحدة إغلاق بذراع مفصلي","Vollhydraulisch":"هيدروليكي بالكامل","Prinzip":"المبدأ","Werkzeughöhe":"ارتفاع القالب","Energie / Wartung":"الطاقة / الصيانة","Führungssäulen":"أعمدة التوجيه","Schutztür zu":"باب الحماية مغلق","Schutztür offen":"باب الحماية مفتوح",
+"Start":"بدء","Ende":"نهاية","Hydraulik/Antriebe":"الهيدروليك/المحركات","Formteil-Behälter":"حاوية القطع","Ansicht":"العرض","Vollbild":"ملء الشاشة","Menü einblenden":"إظهار القائمة","Auswahl Schließeinheit":"اختيار وحدة الإغلاق","Schließsystem":"نظام الإغلاق","Kniehebel":"ذراع مفصلي","Hydraulisch":"هيدروليكي","Schließzylinder":"أسطوانة الإغلاق","Vollhydraulische Schließeinheit":"وحدة إغلاق هيدروليكية بالكامل","Kniehebel-Schließeinheit":"وحدة إغلاق بذراع مفصلي","Vollhydraulisch":"هيدروليكي بالكامل","Prinzip":"المبدأ","Werkzeughöhe":"ارتفاع القالب","Energie / Wartung":"الطاقة / الصيانة","Führungssäulen":"أعمدة التوجيه","Schutztür zu":"باب الحماية مغلق","Schutztür offen":"باب الحماية مفتوح",
 "Schutztür":"باب الحماية","bewegl. Platte":"اللوح المتحرك","feste Platte":"اللوح الثابت","Spritzeinheit":"وحدة الحقن","Düse angelegt":"الفوهة ملامسة","Düse abgehoben":"الفوهة مرفوعة",
 "Auswerfer hinten":"القاذف في الخلف","Auswerfer vorn":"القاذف في الأمام","Dosiert":"ملقّم","Zeitdiagramm":"مخطط الزمن","Zykluszeit":"زمن الدورة","Schließeinheit":"وحدة الإغلاق",
 "Kern":"القلب","Ausblasen":"النفخ","Elektrisch – separate Servoantriebe":"كهربائي – محركات سيرفو منفصلة","Prozessansicht – Werkzeug im Schnitt":"عرض العملية – مقطع القالب",
@@ -5766,6 +5805,14 @@ $('qrPng').onclick=()=>{ const svg=$('qrBox').querySelector('svg'); if(!svg) ret
   img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.outerHTML); };
 $('qrPrint').onclick=()=>{ document.body.classList.add('printqr'); try{ window.print(); }catch(e){} setTimeout(()=>document.body.classList.remove('printqr'),500); };
 $('sQR').onclick=openQR;
+function setFocus(on){ document.body.classList.toggle('focus',on); $('sFocus').classList.toggle('on',on); try{ localStorage.setItem('sgmFocus',on?'1':''); }catch(e){} setTimeout(()=>{ renderGantt(); },50); }
+$('sFocus').onclick=()=>setFocus(!document.body.classList.contains('focus'));
+$('focusBtn').onclick=()=>setFocus(false);
+$('sFull').onclick=()=>{ const d=document, el=d.documentElement;
+  try{ if(d.fullscreenElement||d.webkitFullscreenElement){ (d.exitFullscreen||d.webkitExitFullscreen).call(d); }
+       else if(el.requestFullscreen||el.webkitRequestFullscreen){ (el.requestFullscreen||el.webkitRequestFullscreen).call(el).catch?.(()=>toast('Vollbild hier nicht möglich – als App zum Home-Bildschirm hinzufügen')); }
+       else toast('Vollbild hier nicht möglich – als App zum Home-Bildschirm hinzufügen'); }catch(e){ toast('Vollbild hier nicht möglich – als App zum Home-Bildschirm hinzufügen'); } };
+try{ if(localStorage.getItem('sgmFocus')) setFocus(true); }catch(e){}
 function sysClick(e){
   const tb=e.target.closest('[data-theme]'); if(tb){ const k=tb.dataset.theme; document.body.classList.remove('th-dark','th-blue','th-signal'); if(k) document.body.classList.add('th-'+k); try{ localStorage.setItem('sgmTheme',k); }catch(err){} renderPages(); return true; }
   const b=e.target.closest('[data-qon],[data-qref],[data-qtol],[data-fon],[data-fv],[data-ffol],[data-act],[data-goto],[data-cload],[data-cdel],[data-wq]'); if(!b) return false;
