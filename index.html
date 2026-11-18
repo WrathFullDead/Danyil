@@ -165,8 +165,9 @@ table.act{margin:0 14px 14px;width:calc(100% - 28px);background:#fff}
 .pchart{width:100%;height:auto;display:block;background:#fff;border:1px solid #aaa}
 .ptab{display:grid;gap:4px;margin-top:8px;align-items:center}
 .phd{text-align:center;font-weight:700}
-.phd.stg{background:#d0d4d8;border:1px solid #666;border-radius:2px;padding:6px 0}
-.phd.stg.ws{background:#f2c230}
+.phd.stg{display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1px solid #b8bec4;border-bottom:3px solid var(--sc);border-radius:6px 6px 2px 2px;padding:5px 0;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.phd.stg.ws{background:#fff8dc}
+.phd.stg svg{display:block}
 .rl{font-weight:700;text-align:center;font-size:16px}
 .pc{height:40px;background:#fff;border:1px solid #555;border-radius:2px;font-size:15px;font-weight:600;text-align:right;padding:0 6px;min-width:0}
 .pc.on{background:var(--blue);color:#fff}
@@ -4696,10 +4697,19 @@ function profChart(k){
 }
 let profSel=null;
 const RTL = k => k==='open' || k==='ejB';
+/* Kopf einer Stufe: Nummer im Kreis + Richtungspfeil, WS mit Schild */
+const STGCOL=['#1d4f8f','#2f73c9','#0d8f8f','#6a4fb3','#b35f1d','#5a7d2a'];
+function stgHead(i,ws,rtl,col){
+  const c=ws?'#8a6d00':(col||STGCOL[i%STGCOL.length]);
+  const badge=ws?`<svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="${c}"/><text x="12" y="15.5" font-size="8" font-weight="800" fill="#fff" text-anchor="middle">WS</text></svg>`
+    :`<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="${c}"/><text x="12" y="16.5" font-size="12" font-weight="800" fill="#fff" text-anchor="middle">${i+1}</text></svg>`;
+  const arr=`<svg viewBox="0 0 34 12" width="34" height="12" style="${rtl?'transform:scaleX(-1)':''}"><path d="M1 6h27" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M24 1.5l7 4.5-7 4.5" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<span class="phd stg ${ws?'ws':''}" style="--sc:${c}">${rtl?arr+badge:badge+arr}</span>`;
+}
 function profTable(k,cell){
   const st=cfg.prof[k].st, n=st.length, ic=glyphSVG(k==='close'?'mold_close':k==='open'?'mold_open':k==='ejF'?'ej_fwd':'ej_back',26);
   const idx=[...Array(n).keys()]; const startC=`<span class="pc ro">${f2(startPos(k))}</span>`;
-  const hd=i=>`<span class="phd stg ${st[i].ws?'ws':''}">${RTL(k)?'◀ ':''}${st[i].ws?'WS':i+1}${RTL(k)?'':' ▶'}</span>`;
+  const hd=i=>stgHead(i,st[i].ws,RTL(k));
   if(!RTL(k)) return `<div class="ptab" style="grid-template-columns:34px 80px repeat(${n},1fr) 46px">
       <span></span><span class="phd">${ic}</span>${idx.map(hd).join('')}<span></span>
       <span class="rl" style="color:#1d4f8f">v</span><span></span>${idx.map(i=>cell(i,'v')).join('')}<span class="pu">mm/s</span>
@@ -5193,7 +5203,7 @@ function renderGP(k){
   const pbtn=pr=>`<div class="prow3"><span>${PDEF[pr].n}</span><button class="pval ${PDEF[pr].t?'b':''}" data-p="${pr}">${fmtV(pr)}</button><span class="pu">${PDEF[pr].u||''}</span></div>`;
   const rows=[...D.rows.map(r=>r.k), ...(D.axis==='s'?['s']:[])];
   const idx=[...Array(n).keys()], ord = k==='dose'? idx : idx; // Stufen 1..n
-  let tab=`<div class="ptab" style="grid-template-columns:150px repeat(${n},1fr) 58px"><span></span>${ord.map(i=>`<span class="phd stg">${i+1} ▶</span>`).join('')}<span></span>`;
+  let tab=`<div class="ptab" style="grid-template-columns:150px repeat(${n},1fr) 58px"><span></span>${ord.map(i=>stgHead(i,false,false,k==='dose'?['#e65100','#ef6c00','#f57c00','#fb8c00','#ff9800','#ffa726'][i%6]:k==='hold'?['#b71c1c','#c62828','#d32f2f','#e53935','#ef5350','#e57373'][i%6]:null)).join('')}<span></span>`;
   rows.forEach(row=>{ const r=D.rows.find(x=>x.k===row)||{n:k==='inj'?'Ende Stufe (Weg)':'Ende Stufe (Volumen)',u:'cm³',c:'#333'};
     tab+=`<span class="rl" style="color:${r.c};font-size:13px;text-align:left">${r.n}</span>${ord.map(i=>cell(i,row)).join('')}<span class="pu">${r.u}</span>`; });
   if(actLog.length){ // Istwerte des letzten Zyklus
