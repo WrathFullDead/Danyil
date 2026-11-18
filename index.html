@@ -286,6 +286,126 @@ html,body{overscroll-behavior:none}
   .keys button{height:44px}
   #flowWrap{min-height:170px}
 }
+
+/* ================= THEMEN ================= */
+/* 1 – „Leitstand“: dunkles Industrie-HMI, Bernstein/Grün, kantig */
+body.th-dark{background:#0e1013}
+.th-dark #app{background:#15181c;font-family:"Bahnschrift","DIN Alternate","Roboto Condensed","Arial Narrow",sans-serif}
+.th-dark #title{background:#0e1013;color:#7d8790;letter-spacing:.5px}
+.th-dark .mode{background:#22272d;border:1px solid #3a4148;color:#cfd6dc;border-radius:0}
+.th-dark .mode.y{background:#22272d;color:#ffb300;box-shadow:inset 0 -4px 0 #ffb300}
+.th-dark .mode.g{background:#22272d;color:#38d16a;box-shadow:inset 0 -4px 0 #38d16a}
+.th-dark #alarm{background:#0b0d10;border:1px solid #2b3137;color:#ffb300;border-radius:0;font-family:"Consolas","Courier New",monospace}
+.th-dark #alarm.ok{color:#38d16a}.th-dark #alarm.err{background:#3a0d0d;color:#ff6b5a}
+.th-dark .logo{background:#0b0d10;color:#ffb300;border-radius:0;font-style:normal;letter-spacing:3px}
+.th-dark #vals{background:#0b0d10;border-radius:0}.th-dark #vals .v{background:#15181c;border:1px solid #262c32;border-radius:0;color:#7d8790}
+.th-dark #vals b{color:#38d16a;font-family:"Consolas","Courier New",monospace}
+.th-dark .sb{background:#22272d;color:#cfd6dc;border-color:#3a4148;border-radius:0}
+.th-dark #centre{background:#1b1f24;border-color:#2b3137}
+.th-dark .irow{background:#15181c;border-color:#2b3137}.th-dark .irow.r2{background:#1b1f24}
+.th-dark .pg{background:#22272d;border:1px solid #2f363d;border-radius:0;color:#9aa4ad}.th-dark .pg svg{color:#cfd6dc}
+.th-dark .pg.on{background:#2b3138;box-shadow:inset 0 -3px 0 #ffb300;color:#ffb300}
+.th-dark .pg.sub.on{background:#2b3138;box-shadow:inset 0 -3px 0 #38d16a;color:#38d16a}.th-dark .pg.sub.on svg{color:#38d16a}
+.th-dark .ph{background:#15181c;color:#ffb300;text-transform:uppercase;letter-spacing:1.5px;font-size:13px;border-bottom:1px solid #2b3137}
+.th-dark .pgh,.th-dark .pgh.grn,.th-dark .pgh.ylw{background:#15181c;color:#38d16a;text-transform:uppercase;letter-spacing:1.5px;font-size:13px;border-left:4px solid #38d16a}
+.th-dark .pgh.ylw{color:#ffb300;border-color:#ffb300}
+.th-dark #flowWrap,.th-dark #vParam{background:#1b1f24;color:#cfd6dc}
+.th-dark #flow .sym rect.box{fill:#22272d}.th-dark #flow .gl{color:#e6ebef}.th-dark #flow .lbl{fill:#9aa4ad}
+.th-dark #flow g[stroke]{stroke:#5d6770}
+.th-dark #flow .sym.sel rect.box{fill:#ffb300}.th-dark #flow .sym.sel .gl{color:#111}
+.th-dark #flow .sym.act rect.box{fill:#1f5f35}
+.th-dark #mach,.th-dark #gantt,.th-dark .pchart,.th-dark #pvSvg,.th-dark #scSvg,.th-dark #tpSvg{filter:invert(.92) hue-rotate(180deg) contrast(.9)}
+.th-dark #msgs{background:#15181c;color:#cfd6dc}
+.th-dark #side{background:#0e1013;border-color:#2b3137}
+.th-dark .sd,.th-dark .sd.y{background:#22272d;border:1px solid #2f363d;border-radius:0;color:#cfd6dc}
+.th-dark .sd.on{box-shadow:inset 3px 0 0 #ffb300}
+.th-dark #foot{background:#0e1013;border-color:#2b3137;color:#cfd6dc}
+.th-dark .bq{background:#22272d;border:1px solid #ffb300;color:#ffb300;border-radius:0}
+.th-dark .pval,.th-dark .pc{background:#0b0d10;color:#e6ebef;border:1px solid #3a4148;border-radius:0;font-family:"Consolas","Courier New",monospace}
+.th-dark .pval.b{background:#22272d;color:#38d16a}.th-dark .pc.on{background:#ffb300;color:#111}
+.th-dark .pc.ro{background:#15181c;color:#7d8790}.th-dark .istc{background:#0b0d10!important}
+.th-dark .prow{border-color:#2b3137}.th-dark .prow.sel{background:#22272d}
+.th-dark .phd.stg{background:#22272d;border-color:#3a4148;border-radius:0}
+.th-dark .profR,.th-dark .pvbox{background:#15181c;border-color:#2b3137;color:#cfd6dc}.th-dark .pgh2{background:#22272d;color:#9aa4ad;text-transform:uppercase;font-size:12px;letter-spacing:1px}
+.th-dark .hint{color:#9aa4ad}.th-dark .rl{color:#cfd6dc}
+.th-dark table.mon,.th-dark table.qt td,.th-dark table.cfg td{background:#15181c;color:#cfd6dc;border-color:#2b3137}.th-dark table.mon th{background:#22272d;color:#9aa4ad}
+.th-dark #edit,.th-dark .dbox{background:#1b1f24;border-color:#ffb300;color:#cfd6dc}.th-dark #edit .eh,.th-dark .dh{background:#0b0d10;color:#ffb300}
+.th-dark .eb{background:#22272d;color:#e6ebef;border-color:#3a4148;border-radius:0;box-shadow:none}
+.th-dark .dbtn{background:#22272d;color:#e6ebef;border-color:#3a4148;border-radius:0}.th-dark .dbtn.pri{background:#ffb300;color:#111}
+.th-dark #grpSw button{border-radius:0}
+
+/* 2 – „Zeichnung“: technisches Papier, Blaupausen-Linien, Schreibmaschinenschrift */
+body.th-blue{background:#e9eef2}
+.th-blue #app{background:#f4f1e8;font-family:"IBM Plex Mono","Consolas","Courier New",monospace;color:#16324f}
+.th-blue #title{background:#16324f;color:#e9eef2}
+.th-blue .mode{background:#f4f1e8;border:1.5px solid #16324f;border-radius:0;color:#16324f}
+.th-blue .mode.y{background:repeating-linear-gradient(45deg,#f4f1e8 0 5px,#f1d77a 5px 10px)}
+.th-blue .mode.g{background:repeating-linear-gradient(45deg,#f4f1e8 0 5px,#9fd3a9 5px 10px)}
+.th-blue .mode.on{outline:2px dashed #16324f}
+.th-blue #alarm{background:#fff;border:1.5px solid #16324f;color:#16324f;border-radius:0}
+.th-blue #alarm.err{background:#fde3df;color:#9b1c10;border-color:#9b1c10}
+.th-blue .logo{background:#fff;border:1.5px solid #16324f;color:#16324f;font-style:normal;border-radius:0}.th-blue .logo small{color:#557}
+.th-blue #vals{background:transparent}.th-blue #vals .v{background:#fff;border:1px solid #16324f;border-radius:0;color:#557}.th-blue #vals b{color:#16324f}
+.th-blue .sb{background:#fff;border:1.5px solid #16324f;border-radius:0;color:#16324f}
+.th-blue #centre{background:#fbfaf5;border:1.5px solid #16324f}
+.th-blue .irow{background:#f4f1e8;border-color:#16324f}.th-blue .irow.r2{background:#fbfaf5;border-bottom:1px dashed #16324f}
+.th-blue .pg{background:#fff;border:1px solid #16324f;border-radius:0;color:#16324f}.th-blue .pg.on{background:#16324f;color:#fff}.th-blue .pg.on svg{color:#fff}
+.th-blue .pg.sub.on{background:#fff;color:#16324f;box-shadow:inset 0 0 0 2px #16324f,inset 0 -6px 0 #f1d77a}.th-blue .pg.sub.on svg{color:#16324f}
+.th-blue .ph{background:transparent;color:#16324f;border-bottom:1.5px solid #16324f;text-transform:uppercase;letter-spacing:2px}
+.th-blue .pgh,.th-blue .pgh.grn,.th-blue .pgh.ylw{background:transparent;color:#16324f;border-bottom:1.5px solid #16324f;border-top:1.5px solid #16324f;text-transform:uppercase;letter-spacing:2px}
+.th-blue #flowWrap{background-color:#fbfaf5;background-image:linear-gradient(#dbe4ec 1px,transparent 1px),linear-gradient(90deg,#dbe4ec 1px,transparent 1px);background-size:16px 16px}
+.th-blue #vParam{background:#fbfaf5}
+.th-blue #flow .sym rect.box{fill:#fff;stroke:#16324f!important}.th-blue #flow .gl{color:#16324f}
+.th-blue #flow .sym.sel rect.box{fill:#16324f}.th-blue #flow .sym.act rect.box{fill:#f1d77a}
+.th-blue #side{background:#f4f1e8;border:1.5px solid #16324f}
+.th-blue .sd,.th-blue .sd.y{background:#fff;border:1px solid #16324f;border-radius:0;color:#16324f}.th-blue .sd.on{box-shadow:inset 0 0 0 2px #16324f}
+.th-blue #foot{background:#f4f1e8;border-top:1.5px solid #16324f}
+.th-blue .bq{background:#16324f;border-radius:0;border:0}
+.th-blue .pval,.th-blue .pc{background:#fff;border:1px solid #16324f;border-radius:0;color:#16324f;font-family:inherit}
+.th-blue .pval.b{background:#fff;color:#16324f;box-shadow:inset 0 -4px 0 #9fd3a9}.th-blue .pc.on{background:#16324f;color:#fff}
+.th-blue .pc.ro{background:repeating-linear-gradient(45deg,#fff 0 4px,#eef2f5 4px 8px)}
+.th-blue .phd.stg{background:#fff;border:1px solid #16324f;border-radius:0}
+.th-blue .profR,.th-blue .pvbox{background:#fff;border:1px solid #16324f}.th-blue .pgh2{background:transparent;border-bottom:1px dashed #16324f;color:#16324f;text-transform:uppercase;font-size:12px;letter-spacing:1px}
+.th-blue .pchart,.th-blue #pvSvg,.th-blue #scSvg,.th-blue #tpSvg,.th-blue #mach,.th-blue #gantt{border:1px solid #16324f!important;background:#fff}
+.th-blue table.mon th{background:#16324f;color:#fff}
+.th-blue #edit,.th-blue .dbox{background:#fbfaf5;border:1.5px solid #16324f;border-radius:0}.th-blue #edit .eh,.th-blue .dh{background:#16324f}
+.th-blue .eb{background:#fff;color:#16324f;border:1px solid #16324f;border-radius:0;box-shadow:none}
+.th-blue .dbtn{border-radius:0;border:1px solid #16324f;color:#16324f}.th-blue .dbtn.pri{background:#16324f;color:#fff}
+
+/* 3 – „Signal“: Sicherheitsgelb/Schwarz, große Schrift, dicke Rahmen */
+body.th-signal{background:#111}
+.th-signal #app{background:#f2f2f0;font-family:"Arial Black","Helvetica Neue",Arial,sans-serif}
+.th-signal #title{background:#111;color:#ffd400;font-weight:700}
+.th-signal #head{background:#ffd400;padding:6px;border-bottom:4px solid #111}
+.th-signal .mode{background:#fff;border:3px solid #111;border-radius:10px;color:#111;font-weight:900}
+.th-signal .mode.y{background:#111;color:#ffd400}.th-signal .mode.g{background:#00a650;color:#fff}
+.th-signal #alarm{background:#111;color:#fff;border-radius:10px;font-weight:800}.th-signal #alarm.err{background:#e30613}
+.th-signal .logo{background:#111;color:#ffd400;border-radius:10px;font-style:normal}
+.th-signal #vals{background:transparent}.th-signal #vals .v{background:#fff;border:2px solid #111;border-radius:8px;color:#111}
+.th-signal .sb{background:#fff;border:2px solid #111;border-radius:8px;font-weight:800}
+.th-signal #centre{background:#fff;border:3px solid #111;border-radius:12px;overflow:hidden}
+.th-signal .irow{background:#fff;border-bottom:3px solid #111}.th-signal .irow.r2{background:#f2f2f0}
+.th-signal .pg{background:#fff;border:2px solid #111;border-radius:10px;color:#111;font-weight:800}
+.th-signal .pg.on{background:#ffd400}.th-signal .pg.sub.on{background:#111;color:#ffd400}.th-signal .pg.sub.on svg{color:#ffd400}
+.th-signal .ph{background:#111;color:#ffd400;font-size:16px}
+.th-signal .pgh,.th-signal .pgh.grn,.th-signal .pgh.ylw{background:#ffd400;color:#111;font-size:18px;border-bottom:3px solid #111}
+.th-signal #flowWrap,.th-signal #vParam{background:#fff}
+.th-signal #flow .sym rect.box{fill:#fff;stroke:#111!important;stroke-width:3!important;rx:8}
+.th-signal #flow .sym.sel rect.box{fill:#ffd400}.th-signal #flow .sym.sel .gl{color:#111}
+.th-signal #flow .sym.act rect.box{fill:#00a650}.th-signal #flow .lbl{font-weight:800;fill:#111}
+.th-signal #side{background:#ffd400;border:3px solid #111;border-radius:12px}
+.th-signal .sd,.th-signal .sd.y{background:#fff;border:2px solid #111;border-radius:10px;color:#111;font-weight:800}.th-signal .sd.on{background:#111;color:#ffd400}
+.th-signal #foot{background:#ffd400;border-top:3px solid #111;font-weight:800}
+.th-signal .bq{background:#111;color:#ffd400;border:0;border-radius:10px}
+.th-signal .pval,.th-signal .pc{border:2px solid #111;border-radius:8px;font-weight:900}
+.th-signal .pval.b{background:#111;color:#ffd400}.th-signal .pc.on{background:#ffd400;color:#111}
+.th-signal .phd.stg{border:2px solid #111;border-radius:10px 10px 0 0}
+.th-signal .profR,.th-signal .pvbox{border:2px solid #111;border-radius:10px;overflow:hidden}.th-signal .pgh2{background:#111;color:#fff}
+.th-signal .pchart,.th-signal #pvSvg,.th-signal #scSvg{border:2px solid #111!important;border-radius:10px}
+.th-signal table.mon th{background:#111;color:#ffd400}
+.th-signal #edit,.th-signal .dbox{border:3px solid #111;border-radius:12px;overflow:hidden}.th-signal #edit .eh,.th-signal .dh{background:#111;color:#ffd400}
+.th-signal .eb{background:#fff;color:#111;border:2px solid #111;border-radius:10px;font-weight:800;box-shadow:none}
+.th-signal .dbtn{border:2px solid #111;border-radius:8px;font-weight:800}.th-signal .dbtn.pri{background:#111;color:#ffd400}
 </style>
 </head>
 <body>
@@ -2794,6 +2914,7 @@ var qrcode = function() {
 const LANGS={de:'Deutsch',ru:'Русский',en:'English',pl:'Polski',it:'Italiano',sr:'Srpski',ar:'العربية'};
 const LANGFLAG={de:'🇩🇪',ru:'🇷🇺',en:'🇬🇧',pl:'🇵🇱',it:'🇮🇹',sr:'🇷🇸',ar:'ع'};
 const I18N=[
+["Design","Дизайн","Design","Wygląd","Design","Dizajn"],["Standard","Стандарт","Standard","Standard","Standard","Standard"],
 ["Qualität","Качество","Quality","Jakość","Qualità","Kvalitet"],
 ["− Stufe","− ступень","− stage","− stopień","− stadio","− stepen"],
 ["+ Stufe","+ ступень","+ stage","+ stopień","+ stadio","+ stepen"],
@@ -5511,6 +5632,8 @@ const FN={
   setg(){
     $('vParam').innerHTML=`<div class="pgh grn">Einstellungen</div><div class="plist">
       <div class="prow2"><button class="dbtn" data-act="qr">QR-Code</button><button class="dbtn" data-act="mach">Maschine / Antrieb / Werkzeug-Optionen</button><button class="dbtn" data-act="tasks">Aufgaben</button><button class="dbtn" data-act="exp">Export</button><button class="dbtn" data-act="imp">Import</button><button class="dbtn" data-act="help">Hilfe</button></div>
+      <div class="pgh2" style="margin-top:10px">Design</div>
+      <div class="prow2">${[['','Standard'],['dark','Leitstand (dunkel)'],['blue','Zeichnung'],['signal','Signal (gelb/schwarz)']].map(([k,n])=>`<button class="dbtn ${(localStorage.getItem('sgmTheme')||'')===k?'pri':''}" data-theme="${k}">${n}</button>`).join('')}</div>
       <div class="hint">Maschine: ${cfg.machType} · Nr. ${cfg.machNo} · Antrieb: ${DRIVES[cfg.drive].n}</div></div>`;
     $('symInfo').textContent='Einstellungen';
   },
@@ -5556,6 +5679,7 @@ $('qrPng').onclick=()=>{ const svg=$('qrBox').querySelector('svg'); if(!svg) ret
 $('qrPrint').onclick=()=>{ document.body.classList.add('printqr'); try{ window.print(); }catch(e){} setTimeout(()=>document.body.classList.remove('printqr'),500); };
 $('sQR').onclick=openQR;
 function sysClick(e){
+  const tb=e.target.closest('[data-theme]'); if(tb){ const k=tb.dataset.theme; document.body.classList.remove('th-dark','th-blue','th-signal'); if(k) document.body.classList.add('th-'+k); try{ localStorage.setItem('sgmTheme',k); }catch(err){} renderPages(); return true; }
   const b=e.target.closest('[data-qon],[data-qref],[data-qtol],[data-fon],[data-fv],[data-ffol],[data-act],[data-goto],[data-cload],[data-cdel],[data-wq]'); if(!b) return false;
   const D=b.dataset, rer=()=>{ save(); renderPages(); };
   if(D.qon){ if(!canEdit('Q')) return true; const m=cfg.qm[D.qon]; m.on=!m.on; protLog(D.qon,'Überwachung aktiv',!m.on?'ja':'nein',m.on?'ja':'nein'); rer(); }
@@ -5815,6 +5939,7 @@ $('bLang').textContent=LANGFLAG[LANG]+' '+LANG.toUpperCase();
 $('bLang').onclick=openLang;
 $('langList').addEventListener('click',e=>{ const b=e.target.closest('[data-lang]'); if(!b) return; try{ localStorage.setItem('sgmLang',b.dataset.lang); }catch(err){} location.reload(); });
 i18nStart();
+try{ const th=localStorage.getItem('sgmTheme'); if(th) document.body.classList.add('th-'+th); }catch(e){}
 requestAnimationFrame(tick);
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol)){
   try{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }catch(e){}
