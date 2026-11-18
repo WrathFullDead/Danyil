@@ -2914,6 +2914,17 @@ var qrcode = function() {
 const LANGS={de:'Deutsch',ru:'Русский',en:'English',pl:'Polski',it:'Italiano',sr:'Srpski',ar:'العربية'};
 const LANGFLAG={de:'🇩🇪',ru:'🇷🇺',en:'🇬🇧',pl:'🇵🇱',it:'🇮🇹',sr:'🇷🇸',ar:'ع'};
 const I18N=[
+["Auswahl Schließeinheit","Выбор: узел смыкания","Clamping unit selection","Wybór jednostki zamykania","Selezione gruppo chiusura","Izbor jedinice zatvaranja"],
+["Schließsystem","Система смыкания","Clamping system","System zamykania","Sistema di chiusura","Sistem zatvaranja"],
+["Kniehebel","Коленчатый рычаг","Toggle","Dźwignia kolanowa","Ginocchiera","Kolenasta poluga"],
+["Hydraulisch","Гидравлическая","Hydraulic","Hydrauliczny","Idraulico","Hidraulični"],
+["Schließzylinder","Цилиндр смыкания","Clamp cylinder","Cylinder zamykania","Cilindro di chiusura","Cilindar zatvaranja"],
+["Vollhydraulische Schließeinheit","Полностью гидравлический узел смыкания","Fully hydraulic clamping unit","W pełni hydrauliczna jednostka zamykania","Gruppo chiusura idraulico","Potpuno hidraulična jedinica zatvaranja"],
+["Kniehebel-Schließeinheit","Узел смыкания с коленчатым рычагом","Toggle clamping unit","Jednostka zamykania kolanowa","Gruppo chiusura a ginocchiera","Jedinica zatvaranja s polugom"],
+["Vollhydraulisch","Полностью гидравлический","Fully hydraulic","W pełni hydrauliczny","Completamente idraulico","Potpuno hidraulični"],
+["Prinzip","Принцип","Principle","Zasada","Principio","Princip"],
+["Werkzeughöhe","Высота формы","Mould height","Wysokość formy","Altezza stampo","Visina alata"],
+["Energie / Wartung","Энергия / обслуживание","Energy / maintenance","Energia / konserwacja","Energia / manutenzione","Energija / održavanje"],
 ["Design","Дизайн","Design","Wygląd","Design","Dizajn"],["Standard","Стандарт","Standard","Standard","Standard","Standard"],
 ["Qualität","Качество","Quality","Jakość","Qualità","Kvalitet"],
 ["− Stufe","− ступень","− stage","− stopień","− stadio","− stepen"],
@@ -3492,7 +3503,7 @@ const I18N_AR={
 "Überwachung 1 Start (z. B. Ausdrehkern ausdrehen)":"المراقبة 1 بدء (مثلاً فك القلب)","Überwachung 1 Stopp (z. B. Ausdrehkern eindrehen)":"المراقبة 1 إيقاف (مثلاً ربط القلب)",
 "WZ zu":"قالب مغلق","WZ auf":"قالب مفتوح","Einspr.":"حقن","Nachdr.":"تثبيت","Dekomp.":"تخفيف","Düse vor":"فوهة للأمام","Düse zur.":"فوهة للخلف",
 "Ausw. vor":"قاذف للأمام","Ausw. zur.":"قاذف للخلف","Ausw. Stopp":"قاذف توقف","Rütteln":"الهز","Tür auf":"باب مفتوح","Tür zu":"باب مغلق","Blasen 1":"نفخ 1","Überw.1":"مراقبة 1",
-"Start":"بدء","Ende":"نهاية","Hydraulik/Antriebe":"الهيدروليك/المحركات","Formteil-Behälter":"حاوية القطع","Führungssäulen":"أعمدة التوجيه","Schutztür zu":"باب الحماية مغلق","Schutztür offen":"باب الحماية مفتوح",
+"Start":"بدء","Ende":"نهاية","Hydraulik/Antriebe":"الهيدروليك/المحركات","Formteil-Behälter":"حاوية القطع","Auswahl Schließeinheit":"اختيار وحدة الإغلاق","Schließsystem":"نظام الإغلاق","Kniehebel":"ذراع مفصلي","Hydraulisch":"هيدروليكي","Schließzylinder":"أسطوانة الإغلاق","Vollhydraulische Schließeinheit":"وحدة إغلاق هيدروليكية بالكامل","Kniehebel-Schließeinheit":"وحدة إغلاق بذراع مفصلي","Vollhydraulisch":"هيدروليكي بالكامل","Prinzip":"المبدأ","Werkzeughöhe":"ارتفاع القالب","Energie / Wartung":"الطاقة / الصيانة","Führungssäulen":"أعمدة التوجيه","Schutztür zu":"باب الحماية مغلق","Schutztür offen":"باب الحماية مفتوح",
 "Schutztür":"باب الحماية","bewegl. Platte":"اللوح المتحرك","feste Platte":"اللوح الثابت","Spritzeinheit":"وحدة الحقن","Düse angelegt":"الفوهة ملامسة","Düse abgehoben":"الفوهة مرفوعة",
 "Auswerfer hinten":"القاذف في الخلف","Auswerfer vorn":"القاذف في الأمام","Dosiert":"ملقّم","Zeitdiagramm":"مخطط الزمن","Zykluszeit":"زمن الدورة","Schließeinheit":"وحدة الإغلاق",
 "Kern":"القلب","Ausblasen":"النفخ","Elektrisch – separate Servoantriebe":"كهربائي – محركات سيرفو منفصلة","Prozessansicht – Werkzeug im Schnitt":"عرض العملية – مقطع القالب",
@@ -4304,7 +4315,19 @@ function renderMachine(){
   // Holme
   o+=`<rect x="40" y="64" width="434" height="9" fill="url(#mBar)"/><rect x="40" y="172" width="434" height="9" fill="url(#mBar)"/>
       <rect x="466" y="60" width="14" height="17" rx="2" fill="#7d868e"/><rect x="466" y="168" width="14" height="17" rx="2" fill="#7d868e"/>`;
-  // Antriebszylinder + hintere Platte
+  const HYD=pv('P106')==='Hydraulisch';
+  if(HYD){
+    // Vollhydraulisch: großer Schließzylinder, Kolbenstange direkt an der beweglichen Platte
+    const pf=(xm-122)/64, pk=8+pf*26;
+    o+=`<rect x="0" y="66" width="74" height="114" rx="6" fill="url(#mMet)" stroke="#5f686f"/>
+        <rect x="6" y="76" width="62" height="94" fill="#f4f6f8" stroke="#6b737a"/>
+        <rect x="6" y="76" width="${pk}" height="94" fill="#3d7fd0" opacity=".85"/>
+        <rect x="${6+pk+8}" y="76" width="${Math.max(0,62-pk-8)}" height="94" fill="#9cc3ea" opacity=".7"/>
+        <rect x="${6+pk}" y="76" width="8" height="94" fill="#7d868e" stroke="#444"/>
+        <rect x="${14+pk}" y="106" width="${xm-(14+pk)}" height="32" fill="url(#mBar)" stroke="#6b737a"/>
+        <path d="M10 66v-18h40M30 180v14h30" fill="none" stroke="#3d7fd0" stroke-width="5"/>
+        <rect x="40" y="48" width="34" height="18" fill="none"/>`;
+  } else {
   o+=`<rect x="0" y="106" width="42" height="30" rx="4" fill="url(#mMet)" stroke="#6b737a"/>
       <rect x="42" y="117" width="${kx-42}" height="8" fill="#c9cfd4" stroke="#6b737a"/><rect x="${kx-5}" y="104" width="10" height="34" rx="2" fill="#7d868e"/>
       <rect x="40" y="48" width="34" height="150" rx="3" fill="url(#mSteel)" stroke="#2c3a48"/>`;
@@ -4313,6 +4336,7 @@ function renderMachine(){
       <path d="M${RP} 92L${kx} ${92-off}L${xm} 92"/><path d="M${RP} 152L${kx} ${152+off}L${xm} 152"/></g>
       <g stroke="#7d868e" stroke-width="3"><path d="M${kx} 104L${kx} ${92-off}"/><path d="M${kx} 138L${kx} ${152+off}"/></g>
       <g fill="#dfe3e6" stroke="#555"><circle cx="${kx}" cy="${92-off}" r="5"/><circle cx="${kx}" cy="${152+off}" r="5"/><circle cx="${RP}" cy="92" r="4"/><circle cx="${RP}" cy="152" r="4"/><circle cx="${xm}" cy="92" r="4"/><circle cx="${xm}" cy="152" r="4"/></g>`;
+  }
   // feste Formhälfte (Schnitt) + feste Platte
   o+=`<rect x="290" y="60" width="66" height="126" fill="url(#mMet)" stroke="#5f686f"/>
       <rect x="290" y="86" width="66" height="74" fill="url(#mHatch)"/>
@@ -4400,6 +4424,7 @@ function renderMachine(){
      <text x="${bx+40}" y="172">Spritzeinheit · Düse ${S.noz>0.95?'angelegt':S.noz<0.05?'abgehoben':'…'}</text>
      <text x="${dX+8}" y="46" fill="#4b5861">Schutztür ${S.door>0.95?'offen':S.door<0.05?'zu':'…'}</text>
      <text x="281" y="234" fill="#e9ecef" text-anchor="middle">Formteil-Behälter</text>
+     <text x="${HYD?37:20}" y="${HYD?62:100}" font-size="9.5" fill="#333" text-anchor="middle">${HYD?'Schließzylinder':'Kniehebel'}</text>
      ${S.mold<0.9?`<text x="248" y="58" font-size="9.5" fill="#333" text-anchor="end">Führungssäulen</text>`:''}</g>`;
   svg.innerHTML=o;
   const ms=[`WZ ${S.mold>0.99?'zu':S.mold<0.01?'auf':'fährt'}`,`Auswerfer ${S.ej<0.02?'hinten':S.ej>0.98?'vorn':'Zw.-Pos.'}`, `Dosiert ${Math.round(Math.min(1,S.screw)*100)} %`, tool.core?`Kern ${S.core>0.98?'ausgedreht':S.core<0.02?'eingedreht':'…'}`:''].filter(Boolean);
@@ -4753,6 +4778,7 @@ const PROFDEF = {
 };
 const clone = o => JSON.parse(JSON.stringify(o));
 cfg.prof = clone(PROFDEF);
+PDEF.P106={n:'Schließsystem',t:'sel',v:'Kniehebel',opts:['Kniehebel','Hydraulisch']}; PDEFV.P106='Kniehebel'; if(cfg.p.P106===undefined) cfg.p.P106='Kniehebel';
 PDEF.P105={n:'Schließkraftaufbau (Zuhalten)',u:'s',v:0.2,min:0.05,max:3,st:0.05};
 PDEFV.P105=0.2; cfg.p.P105=0.2;
 PDEF.P102.v=0.3; PDEFV.P102=0.3; cfg.p.P102=0.3;
@@ -4768,7 +4794,8 @@ function segments(k){
 function profTime(k){
   const P=cfg.prof[k]; let t=P.delay||0;
   segments(k).forEach(s=>t+=Math.abs(s.to-s.from)/s.v);
-  if(k==='close') t+=pv('P105');
+  if(k==='close') t+=pv('P105')+(pv('P106')==='Hydraulisch'?0.25:0);
+  if(pv('P106')==='Hydraulisch' && (k==='close'||k==='open')) t*=1.08;
   return t;
 }
 /* Anteil des Weges nach Zeitanteil p (für Animation mit Stufen) */
@@ -5016,6 +5043,7 @@ GLYPH.periph=DOOR+`<path d="M24 14l6 4-6 4" fill="none"/>`;
 const PAGESET = [
   {id:'flow', n:'Ablauf', g:'flowp'},
   {id:'mold', n:'Werkzeug', g:'mold_close', subs:[
+    {n:'Auswahl Schließeinheit', g:'mold_close', p:['P106'], prev:'clamp'},
     {n:'Werkzeug schließen', g:'mold_close', prof:'close'},
     {n:'Werkzeug öffnen', g:'mold_open', prof:'open'},
     {n:'Werkzeugsicherung', g:'mold_close', p:['P104','P102','P103','P105']},
@@ -5816,6 +5844,15 @@ function renderPages(){
       <tr><td>Drehzahl bei ${pv('P423')} m/min</td><td><b>${Math.round(rpm(pv('P423')))} U/min</b></td><td>Ausnutzung Dosierhub</td><td><b>${Math.round(pv('P422')/vMax()*100)} %</b></td></tr></table>
       <div class="hint">Regeln: Dosierweg möglichst 1 – 3 D (Schmelzequalität). Größere Schnecke = mehr Volumen, aber weniger Spritzdruck (Druck ∝ 1/D²).
       ${pv('P422')/screwA()*10/screwD()>3.5?'<b style="color:#c62828">Dosierweg > 3,5 D – Gefahr unaufgeschmolzener Partikel!</b>':''}${pv('P422')/screwA()*10/screwD()<1?'<b style="color:#8a5d00">Dosierweg < 1 D – lange Verweilzeit, thermische Schädigung möglich.</b>':''}</div>`; }
+  if(S.prev==='clamp'){ const hyd=pv('P106')==='Hydraulisch';
+    h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">${hyd?'Vollhydraulische Schließeinheit':'Kniehebel-Schließeinheit'}</div>
+     <table class="cfg qt"><tr><th></th><th>Kniehebel</th><th>Vollhydraulisch</th></tr>
+     <tr><td>Prinzip</td><td>Zylinder/Motor streckt Gelenkhebel – Hebelübersetzung</td><td>großer Hydraulikzylinder drückt direkt auf die Platte</td></tr>
+     <tr><td>Geschwindigkeit</td><td>schnell, bremst am Ende von selbst ab</td><td>etwas langsamer, über Ventile geregelt</td></tr>
+     <tr><td>Schließkraft</td><td>entsteht durch Strecken der Hebel und Dehnen der Holme</td><td>direkt über den Öldruck, genau einstellbar</td></tr>
+     <tr><td>Werkzeughöhe</td><td>Formhöhenverstellung nötig</td><td>beliebig innerhalb des Hubs</td></tr>
+     <tr><td>Energie / Wartung</td><td>wenig Öl, Gelenke schmieren</td><td>viel Öl, Dichtungen prüfen</td></tr></table>
+     <div class="hint">Im Trainer: vollhydraulisch = Werkzeug schließen/öffnen ca. 8 % langsamer und +0,25 s Schließkraftaufbau. Das Maschinenbild zeigt das gewählte System.</div>`; }
   if(S.prev==='screw') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Schnecke / Schneckenvorraum</div><svg id="scSvg" viewBox="0 0 620 212"></svg><div id="scTxt" class="hint"></div>`;
   if(S.prev==='temp') h+=`</div><div class="pvbox" style="margin:0 14px"><div class="pgh2">Plastifizierzylinder – Temperaturzonen (Soll antippen zum Ändern)</div><svg id="tpSvg" viewBox="0 0 640 290"></svg>`;
   if(pv('P701')&&view==='part') h+=`</div><div class="pvbox" style="max-width:420px;margin:0 14px"><div class="pgh2">Formteil</div>${partPic(quality())}<div class="hint">Volumen je Teil: <b>${partVol().toFixed(2).replace('.',',')} cm³</b> · Schussvolumen: <b>${shotVol().toFixed(2).replace('.',',')} cm³</b> · Gewicht: <b>${quality().weight.toFixed(2).replace('.',',')} g</b> (${pv('P502')})</div>`;
