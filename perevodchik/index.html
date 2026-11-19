@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Переводчик на служении</title>
+<meta name="theme-color" content="#14181d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Перевод">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+  :root { --bg:#14181d; --panel:#1e242b; --line:#2e3640; --text:#f2efe8; --muted:#9aa5b1; --accent:#e8b44a; --ok:#5fbf7a; --err:#e06c6c; --fs:26px; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
+  body { display:flex; flex-direction:column; padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  header { display:flex; align-items:center; gap:10px; padding:10px 14px; border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; flex:1; font-weight:600; }
+  .iconbtn { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; font-size:22px; width:46px; height:46px; }
+  #status { padding:6px 14px; font-size:15px; color:var(--muted); min-height:30px; display:flex; align-items:center; gap:8px; }
+  #dot { width:12px; height:12px; border-radius:50%; background:#555; flex:none; }
+  #dot.on { background:var(--ok); animation:pulse 1.4s infinite; }
+  #dot.err { background:var(--err); }
+  @keyframes pulse { 50% { opacity:.35; } }
+  #level { flex:none; width:60px; height:8px; background:var(--line); border-radius:4px; overflow:hidden; }
+  #level i { display:block; height:100%; width:0; background:var(--accent); transition:width .1s; }
+  #out { flex:1; overflow-y:auto; padding:10px 16px 20px; -webkit-overflow-scrolling:touch; }
+  .item { margin:0 0 18px; }
+  .ru { font-size:var(--fs); line-height:1.35; }
+  .de { font-size:calc(var(--fs) * .55); color:var(--muted); margin-top:4px; font-style:italic; }
+  .item.old .ru { opacity:.6; }
+  #live { font-size:calc(var(--fs) * .55); color:var(--muted); font-style:italic; min-height:1.2em; padding:0 16px 6px; }
+  .hint { color:var(--muted); font-size:18px; line-height:1.45; }
+  .hint b { color:var(--text); }
+  footer { padding:12px 14px 14px; border-top:1px solid var(--line); display:flex; gap:10px; }
+  #start { flex:1; font-size:24px; font-weight:700; padding:18px; border-radius:16px; border:none; background:var(--ok); color:#0b1a10; }
+  #start.stop { background:var(--err); color:#fff; }
+  #mute { width:72px; font-size:28px; border-radius:16px; border:1px solid var(--line); background:var(--panel); color:var(--text); }
+  /* Настройки */
+  #settings { position:fixed; inset:0; background:var(--bg); overflow-y:auto; display:none; z-index:10;
+    padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 30px); }
+  #settings.open { display:block; }
+  #settings h2 { font-size:22px; margin:6px 0 14px; display:flex; align-items:center; }
+  #settings h2 span { flex:1; }
+  fieldset { border:1px solid var(--line); border-radius:14px; margin:0 0 16px; padding:12px 14px; background:var(--panel); }
+  legend { color:var(--accent); font-weight:600; padding:0 6px; }
+  label { display:block; margin:10px 0 4px; font-size:16px; }
+  .radio { display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-size:16px; }
+  .radio input { width:22px; height:22px; margin-top:1px; flex:none; }
+  .radio small { display:block; color:var(--muted); font-size:14px; margin-top:2px; }
+  input[type=text], input[type=password], select, textarea { width:100%; font-size:17px; padding:10px; border-radius:10px;
+    border:1px solid var(--line); background:#11151a; color:var(--text); font-family:inherit; }
+  textarea { min-height:80px; }
+  input[type=range] { width:100%; }
+  .row { display:flex; gap:10px; align-items:center; }
+  .row > * { flex:1; }
+  .btn { font-size:17px; padding:12px; border-radius:12px; border:1px solid var(--line); background:#2a323b; color:var(--text); margin-top:10px; width:100%; }
+  .small { color:var(--muted); font-size:14px; line-height:1.4; margin:6px 0 0; }
+  #settings a { color:var(--accent); }
+  .check { display:flex; gap:10px; align-items:center; margin:12px 0 4px; font-size:16px; }
+  .check input { width:22px; height:22px; }
+  ol.steps { padding-left:20px; margin:6px 0; line-height:1.5; font-size:15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Перевод DE → RU</h1>
+  <button class="iconbtn" id="clear" title="Очистить">🗑</button>
+  <button class="iconbtn" id="openSettings" title="Настройки">⚙︎</button>
+</header>
+<div id="status"><span id="dot"></span><span id="statusText">Готово. Нажмите «Старт».</span><span style="flex:1"></span><span id="level"><i></i></span></div>
+<div id="out">
+  <div class="hint" id="welcome">
+    <p><b>Как пользоваться:</b></p>
+    <p>1. Подключите наушники.<br>2. Положите телефон экраном вверх, микрофоном (низ телефона) к говорящему.<br>3. Нажмите <b>«Старт»</b> и не блокируйте экран: экран будет гореть сам.</p>
+    <p>Перевод появляется здесь крупным текстом и звучит в наушнике, с задержкой в несколько секунд.</p>
+    <p>Первый раз откройте <b>⚙︎ Настройки</b>: там выбирается режим и вводится бесплатный ключ.</p>
+  </div>
+</div>
+<div id="live"></div>
+<footer>
+  <button id="mute" title="Звук вкл/выкл">🔊</button>
+  <button id="start">Старт</button>
+</footer>
+
+<div id="settings">
+  <h2><span>Настройки</span><button class="iconbtn" id="closeSettings">✕</button></h2>
+
+  <fieldset>
+    <legend>Режим</legend>
+    <label class="radio"><input type="radio" name="mode" value="audio">
+      <span><b>Лучший для швабского</b> (нужен бесплатный ключ)<small>Gemini сам слушает звук, понимает диалект и переводит по смыслу.</small></span></label>
+    <label class="radio"><input type="radio" name="mode" value="text">
+      <span><b>Средний</b> (нужен бесплатный ключ)<small>iPhone распознаёт речь, Gemini переводит по смыслу и исправляет ослышки.</small></span></label>
+    <label class="radio"><input type="radio" name="mode" value="free">
+      <span><b>Простой</b> (без ключа)<small>iPhone распознаёт, Google переводит дословно. Швабский понимает плохо.</small></span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Бесплатный ключ Gemini</legend>
+    <ol class="steps">
+      <li>Откройте <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> и войдите с аккаунтом Google.</li>
+      <li>Нажмите «Create API key», скопируйте ключ.</li>
+      <li>Вставьте его сюда. Карта и подписка не нужны.</li>
+    </ol>
+    <input type="password" id="apiKey" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button class="btn" id="testKey">Проверить ключ</button>
+    <p class="small" id="keyResult"></p>
+    <label for="model">Модель</label>
+    <input type="text" id="model" autocapitalize="off" spellcheck="false">
+    <p class="small">По умолчанию <code>gemini-flash-lite-latest</code>: у неё самый большой бесплатный лимит. Если перевод слабый, попробуйте <code>gemini-flash-latest</code>, но её лимита может не хватить на долгое служение.</p>
+    <p class="small">Ключ хранится только на этом телефоне. В бесплатном режиме Google может использовать присланный звук для улучшения своих сервисов.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Подсказки для перевода</legend>
+    <p class="small">Имена пастора и братьев, название церкви, частые слова. Это сильно помогает распознаванию.</p>
+    <textarea id="hints" placeholder="Например: Пастор Мюллер, церковь «Евангельские христиане-баптисты», Gemeinde Stuttgart"></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Голос и текст</legend>
+    <label for="voice">Голос</label>
+    <select id="voice"></select>
+    <label for="rate">Скорость речи: <span id="rateVal"></span></label>
+    <input type="range" id="rate" min="0.7" max="1.5" step="0.05">
+    <label for="fs">Размер шрифта: <span id="fsVal"></span></label>
+    <input type="range" id="fs" min="16" max="48" step="1">
+    <label class="check"><input type="checkbox" id="showDe"> Показывать немецкий оригинал</label>
+    <button class="btn" id="testVoice">Проверить голос</button>
+  </fieldset>
+
+  <fieldset>
+    <legend>Для опытных</legend>
+    <label for="minSec">Мин. длина отрывка, сек: <span id="minVal"></span></label>
+    <input type="range" id="minSec" min="4" max="12" step="1">
+    <label for="maxSec">Макс. длина отрывка, сек: <span id="maxVal"></span></label>
+    <input type="range" id="maxSec" min="8" max="25" step="1">
+    <p class="small">Только для режима «Лучший». Короче значит быстрее, но больше запросов и меньше контекста. Отрывок режется на паузе в речи.</p>
+    <p class="small" id="usage"></p>
+  </fieldset>
+</div>
+
+<script>
+'use strict';
+// ---------- Настройки ----------
+const DEF = { mode:'free', apiKey:'', model:'gemini-flash-lite-latest', hints:'', voice:'', rate:1.05, fs:26, showDe:false, minSec:6, maxSec:14, muted:false };
+const S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('perevod-settings') || '{}'));
+const save = () => localStorage.setItem('perevod-settings', JSON.stringify(S));
+const $ = id => document.getElementById(id);
+
+function applyUI() {
+  document.documentElement.style.setProperty('--fs', S.fs + 'px');
+  document.querySelectorAll('.de').forEach(e => e.style.display = S.showDe ? '' : 'none');
+  $('mute').textContent = S.muted ? '🔇' : '🔊';
+}
+function bindSettings() {
+  document.querySelectorAll('input[name=mode]').forEach(r => { r.checked = r.value === S.mode; r.onchange = () => { S.mode = r.value; save(); }; });
+  $('apiKey').value = S.apiKey; $('apiKey').oninput = e => { const had = !!S.apiKey; S.apiKey = e.target.value.trim(); if (!had && S.apiKey && S.mode === 'free') { S.mode = 'audio'; document.querySelectorAll('input[name=mode]').forEach(r => r.checked = r.value === 'audio'); } save(); };
+  $('model').value = S.model; $('model').oninput = e => { S.model = e.target.value.trim() || DEF.model; save(); };
+  $('hints').value = S.hints; $('hints').oninput = e => { S.hints = e.target.value; save(); };
+  const rng = (id, key, out, fmt) => { const el = $(id); el.value = S[key]; const upd = () => $(out).textContent = fmt(S[key]);
+    upd(); el.oninput = () => { S[key] = parseFloat(el.value); upd(); save(); applyUI(); }; };
+  rng('rate', 'rate', 'rateVal', v => v.toFixed(2));
+  rng('fs', 'fs', 'fsVal', v => v + ' px');
+  rng('minSec', 'minSec', 'minVal', v => v);
+  rng('maxSec', 'maxSec', 'maxVal', v => v);
+  $('showDe').checked = S.showDe; $('showDe').onchange = e => { S.showDe = e.target.checked; save(); applyUI(); };
+  $('voice').onchange = e => { S.voice = e.target.value; save(); };
+}
+function fillVoices() {
+  const vs = speechSynthesis.getVoices().filter(v => /^ru/i.test(v.lang));
+  const sel = $('voice'); sel.innerHTML = '';
+  if (!vs.length) { sel.innerHTML = '<option value="">Стандартный русский</option>'; return; }
+  vs.forEach(v => { const o = document.createElement('option'); o.value = v.voiceURI; o.textContent = v.name + (v.localService ? '' : ' (онлайн)'); sel.appendChild(o); });
+  if (S.voice && vs.some(v => v.voiceURI === S.voice)) sel.value = S.voice; else S.voice = sel.value;
+}
+function usageText() {
+  const u = JSON.parse(localStorage.getItem('perevod-usage') || '{}');
+  const today = new Date().toISOString().slice(0, 10);
+  $('usage').textContent = 'Запросов к Gemini сегодня: ' + (u.day === today ? u.n : 0);
+}
+function countRequest() {
+  const today = new Date().toISOString().slice(0, 10);
+  const u = JSON.parse(localStorage.getItem('perevod-usage') || '{}');
+  localStorage.setItem('perevod-usage', JSON.stringify({ day: today, n: (u.day === today ? u.n : 0) + 1 }));
+}
+
+// ---------- Вывод ----------
+const out = $('out');
+function addItem(ru, de) {
+  if ($('welcome')) $('welcome').remove();
+  out.querySelectorAll('.item').forEach(e => e.classList.add('old'));
+  const d = document.createElement('div'); d.className = 'item';
+  const r = document.createElement('div'); r.className = 'ru'; r.textContent = ru; d.appendChild(r);
+  if (de) { const g = document.createElement('div'); g.className = 'de'; g.textContent = de; if (!S.showDe) g.style.display = 'none'; d.appendChild(g); }
+  out.appendChild(d);
+  while (out.children.length > 300) out.firstChild.remove();
+  out.scrollTop = out.scrollHeight;
+}
+function status(text, kind) { $('statusText').textContent = text; $('dot').className = kind || ''; }
+
+// ---------- Озвучка ----------
+let speakQueue = 0;
+function unlockSpeech() { try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {} }
+function speak(text) {
+  if (S.muted || !text) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'ru-RU';
+  const v = speechSynthesis.getVoices().find(v => v.voiceURI === S.voice);
+  if (v) u.voice = v;
+  // если перевод отстаёт, говорим чуть быстрее
+  u.rate = Math.min(1.8, S.rate + 0.12 * Math.min(speakQueue, 3));
+  speakQueue++;
+  u.onend = u.onerror = () => { speakQueue = Math.max(0, speakQueue - 1); };
+  speechSynthesis.speak(u);
+}
+
+// ---------- Контекст ----------
+const history = []; // {de, ru}
+function contextBlock() {
+  const last = history.slice(-6);
+  if (!last.length) return '';
+  return 'Предыдущие фрагменты (для контекста, НЕ переводи их снова):\n' +
+    last.map(h => (h.de ? 'DE: ' + h.de + '\n' : '') + 'RU: ' + h.ru).join('\n');
+}
+function systemPrompt(audio) {
+  return [
+    'Ты синхронный переводчик на христианском богослужении в Германии (проповедь, молитвы, объявления, свидетельства).',
+    'Говорят на немецком, часто на швабском диалекте (Schwäbisch) или с сильным акцентом.',
+    'Слушатель: пожилая русскоязычная женщина, плохо знает немецкий. Она слышит перевод в наушнике.',
+    audio ? 'Ты получаешь отрывок аудио. Сначала пойми, что сказано (с учётом диалекта), затем переведи.'
+          : 'Ты получаешь текст от автоматического распознавания речи iPhone. Оно часто ошибается на диалекте: путает похожие по звучанию слова, рвёт фразы.',
+    'Правила:',
+    '- Передавай СМЫСЛ, а не слова. Естественный, простой русский язык, короткие предложения.',
+    '- Если слово расслышано неясно или явно искажено, восстанови его по контексту богослужения и предыдущих фрагментов. Не выдумывай то, чего не было сказано, но и не выдавай бессмыслицу.',
+    '- Цитаты из Библии давай в Синодальном переводе, со ссылкой, если она понятна (например, «Ин. 3:16»).',
+    '- Церковные слова переводи привычно: Gemeinde = церковь/община, Bruder/Schwester = брат/сестра, Abendmahl = Вечеря Господня, Gottesdienst = служение.',
+    '- Отрывок может начинаться или кончаться на полуслове: переводи то, что понятно, без пояснений.',
+    '- Если это пение, музыка, шум, тишина или неразборчиво, верни пустую строку в "ru".',
+    '- Никаких комментариев от себя, только перевод.',
+    S.hints.trim() ? 'Полезные имена и слова: ' + S.hints.trim() : ''
+  ].filter(Boolean).join('\n');
+}
+
+// ---------- Gemini ----------
+let noThinkingCfg = false;
+async function gemini(parts, schemaProps, audio) {
+  const body = {
+    systemInstruction: { parts: [{ text: systemPrompt(audio) }] },
+    contents: [{ role: 'user', parts }],
+    generationConfig: {
+      temperature: 0.3,
+      responseMimeType: 'application/json',
+      responseSchema: { type: 'OBJECT', properties: schemaProps, required: Object.keys(schemaProps) }
+    }
+  };
+  if (!noThinkingCfg) body.generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(S.model) + ':generateContent';
+  countRequest();
+  const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': S.apiKey }, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const t = await res.text();
+    if (res.status === 400 && /thinking/i.test(t) && !noThinkingCfg) { noThinkingCfg = true; return gemini(parts, schemaProps, audio); }
+    const err = new Error(res.status === 429 ? 'Бесплатный лимит Gemini исчерпан (подождите или смените режим)' :
+      res.status === 400 || res.status === 403 ? 'Ключ или модель не подходят: ' + t.slice(0, 160) : 'Ошибка Gemini ' + res.status);
+    err.status = res.status; throw err;
+  }
+  const j = await res.json();
+  const txt = j.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '{}';
+  try { return JSON.parse(txt); } catch (e) { return { ru: txt }; }
+}
+
+// ---------- Бесплатный перевод Google ----------
+async function googleFree(text) {
+  const u = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=de&tl=ru&dt=t&q=' + encodeURIComponent(text);
+  const r = await fetch(u);
+  if (!r.ok) throw new Error('Перевод Google недоступен (' + r.status + ')');
+  const j = await r.json();
+  return (j[0] || []).map(x => x[0]).join('');
+}
+
+// ---------- Очередь (сохраняет порядок) ----------
+let chain = Promise.resolve(), pending = 0, errCount = 0;
+function enqueue(job) {
+  pending++;
+  chain = chain.then(job).then(() => { errCount = 0; status(running ? 'Слушаю…' : 'Остановлено.', running ? 'on' : ''); },
+    e => { errCount++; status(e.message, 'err'); console.error(e); })
+    .finally(() => { pending--; });
+}
+function deliver(de, ru) {
+  ru = (ru || '').trim();
+  if (!ru) return;
+  history.push({ de, ru }); if (history.length > 20) history.shift();
+  addItem(ru, de); speak(ru);
+}
+
+// ---------- Режим «Лучший»: запись аудио и нарезка по паузам ----------
+let ctx, stream, proc, srcNode;
+let buf = [], bufLen = 0, speechMs = 0, silenceMs = 0, noise = 0.01;
+const TARGET_SR = 16000;
+
+async function startAudio() {
+  stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  await ctx.resume();
+  srcNode = ctx.createMediaStreamSource(stream);
+  proc = ctx.createScriptProcessor(4096, 1, 1);
+  const gain = ctx.createGain(); gain.gain.value = 0; // в динамик ничего не идёт
+  srcNode.connect(proc); proc.connect(gain); gain.connect(ctx.destination);
+  buf = []; bufLen = 0; speechMs = 0; silenceMs = 0;
+  proc.onaudioprocess = e => {
+    const x = e.inputBuffer.getChannelData(0);
+    const ms = x.length / ctx.sampleRate * 1000;
+    let s = 0; for (let i = 0; i < x.length; i++) s += x[i] * x[i];
+    const rms = Math.sqrt(s / x.length);
+    const isSpeech = rms > Math.max(0.006, noise * 2.2);
+    if (!isSpeech) noise = noise * 0.95 + rms * 0.05; else noise = Math.min(noise * 1.002, 0.05);
+    $('level').firstChild.style.width = Math.min(100, rms * 600) + '%';
+    buf.push(downsample(x, ctx.sampleRate)); bufLen += ms;
+    if (isSpeech) { speechMs += ms; silenceMs = 0; } else silenceMs += ms;
+    const sec = bufLen / 1000;
+    if ((sec >= S.minSec && silenceMs >= 550) || sec >= S.maxSec) flushAudio();
+    else if (speechMs === 0 && sec > 3) { buf = []; bufLen = 0; } // долгая тишина: не копим
+  };
+}
+function downsample(x, sr) {
+  const ratio = sr / TARGET_SR, n = Math.floor(x.length / ratio), o = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const a = Math.floor(i * ratio), b = Math.min(x.length, Math.floor((i + 1) * ratio)); let s = 0; for (let k = a; k < b; k++) s += x[k]; o[i] = s / Math.max(1, b - a); }
+  return o;
+}
+function flushAudio() {
+  const chunks = buf, sp = speechMs;
+  buf = []; bufLen = 0; speechMs = 0; silenceMs = 0;
+  if (sp < 900) return; // почти без речи, запрос не тратим
+  if (pending > 3) { status('Не успеваю, пропускаю отрывок…', 'err'); return; }
+  const wav = encodeWav(chunks);
+  enqueue(async () => {
+    if (running) status('Перевожу…', 'on');
+    const r = await gemini([
+      { inline_data: { mime_type: 'audio/wav', data: wav } },
+      { text: (contextBlock() ? contextBlock() + '\n\n' : '') + 'Новый отрывок аудио выше. Верни JSON: "de": что сказано по-немецки (литературно), "ru": перевод.' }
+    ], { de: { type: 'STRING' }, ru: { type: 'STRING' } }, true);
+    deliver(r.de || '', r.ru);
+  });
+}
+function encodeWav(chunks) {
+  let n = 0; chunks.forEach(c => n += c.length);
+  const b = new ArrayBuffer(44 + n * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, TARGET_SR, true); v.setUint32(28, TARGET_SR * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  let o = 44;
+  for (const c of chunks) for (let i = 0; i < c.length; i++) { const s = Math.max(-1, Math.min(1, c[i])); v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true); o += 2; }
+  const bytes = new Uint8Array(b); let bin = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function stopAudio() {
+  try { if (bufLen / 1000 > 2) flushAudio(); } catch (e) {}
+  try { proc && (proc.onaudioprocess = null, proc.disconnect()); srcNode && srcNode.disconnect(); } catch (e) {}
+  try { stream && stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  try { ctx && ctx.close(); } catch (e) {}
+  proc = srcNode = stream = ctx = null;
+}
+
+// ---------- Режимы «Средний» и «Простой»: распознавание iPhone ----------
+let rec, sentLen = 0, lastFull = '', stableTimer = null;
+function startRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) throw new Error('Распознавание речи недоступно. Откройте страницу в Safari и включите Siri/Диктовку в настройках iPhone.');
+  rec = new SR();
+  rec.lang = 'de-DE'; rec.continuous = true; rec.interimResults = true;
+  sentLen = 0; lastFull = '';
+  rec.onresult = e => {
+    let full = '';
+    for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript + ' ';
+    full = full.replace(/\s+/g, ' ').trim();
+    if (full.length < sentLen) sentLen = 0;
+    lastFull = full;
+    $('live').textContent = full.slice(sentLen).slice(-160);
+    clearTimeout(stableTimer);
+    const fresh = full.slice(sentLen);
+    if (fresh.length > 220) sendPhrase(); else stableTimer = setTimeout(sendPhrase, 1300);
+  };
+  rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { status('Нет доступа к микрофону/распознаванию. Разрешите в настройках Safari.', 'err'); stop(); } };
+  rec.onend = () => { if (running && isRecMode()) { sendPhrase(); setTimeout(() => { if (running) { try { startRecognition(); } catch (e) {} } }, 250); } };
+  rec.start();
+}
+function isRecMode() { return S.mode === 'text' || S.mode === 'free'; }
+function sendPhrase() {
+  clearTimeout(stableTimer);
+  const de = lastFull.slice(sentLen).trim();
+  sentLen = lastFull.length;
+  $('live').textContent = '';
+  if (de.length < 3) return;
+  const mode = S.mode;
+  enqueue(async () => {
+    let ru;
+    if (mode === 'text') {
+      const r = await gemini([{ text: (contextBlock() ? contextBlock() + '\n\n' : '') + 'Новый распознанный текст:\n' + de + '\n\nВерни JSON: "ru": перевод.' }],
+        { ru: { type: 'STRING' } }, false);
+      ru = r.ru;
+    } else ru = await googleFree(de);
+    deliver(de, ru);
+  });
+}
+function stopRecognition() {
+  clearTimeout(stableTimer);
+  if (rec) { const r = rec; rec = null; r.onend = null; try { r.stop(); } catch (e) {} }
+  if (lastFull.slice(sentLen).trim().length > 2) sendPhrase();
+}
+
+// ---------- Экран не гаснет ----------
+let wakeLock = null;
+async function keepAwake() { try { if ('wakeLock' in navigator) { wakeLock = await navigator.wakeLock.request('screen'); } } catch (e) {} }
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && running) {
+    keepAwake();
+    if (ctx && ctx.state !== 'running') ctx.resume();
+    status('Слушаю… (если экран гас, перевод мог прерваться)', 'on');
+  }
+});
+
+// ---------- Старт / стоп ----------
+let running = false;
+async function start() {
+  if ((S.mode === 'audio' || S.mode === 'text') && !S.apiKey) { openSettings(); $('keyResult').textContent = 'Для этого режима нужен ключ, или выберите режим «Простой».'; return; }
+  unlockSpeech();
+  running = true; errCount = 0;
+  $('start').textContent = 'Стоп'; $('start').classList.add('stop');
+  status('Включаю микрофон…', 'on');
+  try {
+    if (S.mode === 'audio') await startAudio(); else startRecognition();
+    keepAwake();
+    status('Слушаю…', 'on');
+  } catch (e) { status(e.message || 'Нет доступа к микрофону', 'err'); stop(); }
+}
+function stop() {
+  running = false;
+  stopAudio(); stopRecognition();
+  try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null;
+  $('level').firstChild.style.width = '0';
+  $('start').textContent = 'Старт'; $('start').classList.remove('stop');
+  if ($('dot').className !== 'err') status('Остановлено.', '');
+}
+$('start').onclick = () => running ? stop() : start();
+$('mute').onclick = () => { S.muted = !S.muted; save(); applyUI(); if (S.muted) speechSynthesis.cancel(); };
+$('clear').onclick = () => { if (confirm('Очистить текст?')) { out.innerHTML = ''; history.length = 0; } };
+function openSettings() { usageText(); $('settings').classList.add('open'); }
+$('openSettings').onclick = () => { if (running) stop(); openSettings(); };
+$('closeSettings').onclick = () => $('settings').classList.remove('open');
+$('testVoice').onclick = () => { const m = S.muted; S.muted = false; speak('Благословенно имя Господне. Так будет звучать перевод.'); S.muted = m; };
+$('testKey').onclick = async () => {
+  $('keyResult').textContent = 'Проверяю…';
+  try {
+    const r = await gemini([{ text: 'Grüß Gott mitnand, schee dass ihr do seid.' }], { ru: { type: 'STRING' } }, false);
+    $('keyResult').textContent = '✅ Работает. Пример: «' + r.ru + '»';
+  } catch (e) { $('keyResult').textContent = '❌ ' + e.message; }
+};
+
+bindSettings(); applyUI(); fillVoices();
+speechSynthesis.onvoiceschanged = fillVoices;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
