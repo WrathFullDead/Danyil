@@ -136,9 +136,9 @@
   <fieldset>
     <legend>Для опытных</legend>
     <label for="minSec">Мин. длина отрывка, сек: <span id="minVal"></span></label>
-    <input type="range" id="minSec" min="4" max="12" step="1">
+    <input type="range" id="minSec" min="2" max="10" step="1">
     <label for="maxSec">Макс. длина отрывка, сек: <span id="maxVal"></span></label>
-    <input type="range" id="maxSec" min="8" max="25" step="1">
+    <input type="range" id="maxSec" min="5" max="20" step="1">
     <p class="small">Только для режима «Лучший». Короче значит быстрее, но больше запросов и меньше контекста. Отрывок режется на паузе в речи.</p>
     <p class="small" id="usage"></p>
   </fieldset>
@@ -147,8 +147,9 @@
 <script>
 'use strict';
 // ---------- Настройки ----------
-const DEF = { mode:'free', apiKey:'', model:'gemini-flash-lite-latest', hints:'', voice:'', rate:1.05, fs:26, showDe:false, minSec:6, maxSec:14, muted:false };
+const DEF = { mode:'free', apiKey:'', model:'gemini-flash-lite-latest', hints:'', voice:'', rate:1.1, fs:26, showDe:false, minSec:3, maxSec:8, muted:false, v:2 };
 const S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('perevod-settings') || '{}'));
+if (S.v !== 2) { S.minSec = 3; S.maxSec = 8; S.rate = Math.max(S.rate, 1.1); S.v = 2; } // быстрее, чем в первой версии
 const save = () => localStorage.setItem('perevod-settings', JSON.stringify(S));
 const $ = id => document.getElementById(id);
 
@@ -213,7 +214,9 @@ function speak(text) {
   const v = speechSynthesis.getVoices().find(v => v.voiceURI === S.voice);
   if (v) u.voice = v;
   // если перевод отстаёт, говорим чуть быстрее
-  u.rate = Math.min(1.8, S.rate + 0.12 * Math.min(speakQueue, 3));
+  // перевод отстаёт: говорим быстрее, а если очередь большая, сбрасываем старое (текст остаётся на экране)
+  if (speakQueue >= 2) { speechSynthesis.cancel(); speakQueue = 0; }
+  u.rate = Math.min(1.7, S.rate + 0.2 * speakQueue);
   speakQueue++;
   u.onend = u.onerror = () => { speakQueue = Math.max(0, speakQueue - 1); };
   speechSynthesis.speak(u);
@@ -236,6 +239,7 @@ function systemPrompt(audio) {
           : 'Ты получаешь текст от автоматического распознавания речи iPhone. Оно часто ошибается на диалекте: путает похожие по звучанию слова, рвёт фразы.',
     'Правила:',
     '- Передавай СМЫСЛ, а не слова. Естественный, простой русский язык, короткие предложения.',
+    '- Переводи СЖАТО, как синхронист: убирай повторы, слова-паразиты и вводные, перевод должен звучать не дольше оригинала.',
     '- Если слово расслышано неясно или явно искажено, восстанови его по контексту богослужения и предыдущих фрагментов. Не выдумывай то, чего не было сказано, но и не выдавай бессмыслицу.',
     '- Цитаты из Библии давай в Синодальном переводе, со ссылкой, если она понятна (например, «Ин. 3:16»).',
     '- Церковные слова переводи привычно: Gemeinde = церковь/община, Bruder/Schwester = брат/сестра, Abendmahl = Вечеря Господня, Gottesdienst = служение.',
@@ -284,10 +288,13 @@ async function googleFree(text) {
 }
 
 // ---------- Очередь (сохраняет порядок) ----------
+// Запросы идут параллельно (не ждут друг друга), а результаты выдаются строго по порядку.
 let chain = Promise.resolve(), pending = 0, errCount = 0;
 function enqueue(job) {
   pending++;
-  chain = chain.then(job).then(() => { errCount = 0; status(running ? 'Слушаю…' : 'Остановлено.', running ? 'on' : ''); },
+  const p = job();
+  p.catch(() => {});
+  chain = chain.then(() => p).then(r => { errCount = 0; if (r) deliver(r.de || '', r.ru); status(running ? 'Слушаю…' : 'Остановлено.', running ? 'on' : ''); },
     e => { errCount++; status(e.message, 'err'); console.error(e); })
     .finally(() => { pending--; });
 }
@@ -323,7 +330,7 @@ async function startAudio() {
     buf.push(downsample(x, ctx.sampleRate)); bufLen += ms;
     if (isSpeech) { speechMs += ms; silenceMs = 0; } else silenceMs += ms;
     const sec = bufLen / 1000;
-    if ((sec >= S.minSec && silenceMs >= 550) || sec >= S.maxSec) flushAudio();
+    if ((sec >= S.minSec && silenceMs >= 350) || sec >= S.maxSec) flushAudio();
     else if (speechMs === 0 && sec > 3) { buf = []; bufLen = 0; } // долгая тишина: не копим
   };
 }
@@ -335,16 +342,17 @@ function downsample(x, sr) {
 function flushAudio() {
   const chunks = buf, sp = speechMs;
   buf = []; bufLen = 0; speechMs = 0; silenceMs = 0;
-  if (sp < 900) return; // почти без речи, запрос не тратим
-  if (pending > 3) { status('Не успеваю, пропускаю отрывок…', 'err'); return; }
+  if (sp < 700) return; // почти без речи, запрос не тратим
+  if (pending > 4) { status('Не успеваю, пропускаю отрывок…', 'err'); return; }
   const wav = encodeWav(chunks);
   enqueue(async () => {
     if (running) status('Перевожу…', 'on');
-    const r = await gemini([
+    // немецкий текст просим только если его показывают: меньше текста в ответе, быстрее
+    const withDe = S.showDe;
+    return gemini([
       { inline_data: { mime_type: 'audio/wav', data: wav } },
-      { text: (contextBlock() ? contextBlock() + '\n\n' : '') + 'Новый отрывок аудио выше. Верни JSON: "de": что сказано по-немецки (литературно), "ru": перевод.' }
-    ], { de: { type: 'STRING' }, ru: { type: 'STRING' } }, true);
-    deliver(r.de || '', r.ru);
+      { text: (contextBlock() ? contextBlock() + '\n\n' : '') + 'Новый отрывок аудио выше. Верни JSON: ' + (withDe ? '"de": что сказано по-немецки (литературно), ' : '') + '"ru": перевод.' }
+    ], withDe ? { de: { type: 'STRING' }, ru: { type: 'STRING' } } : { ru: { type: 'STRING' } }, true);
   });
 }
 function encodeWav(chunks) {
@@ -386,7 +394,7 @@ function startRecognition() {
     $('live').textContent = full.slice(sentLen).slice(-160);
     clearTimeout(stableTimer);
     const fresh = full.slice(sentLen);
-    if (fresh.length > 220) sendPhrase(); else stableTimer = setTimeout(sendPhrase, 1300);
+    if (fresh.length > 140) sendPhrase(); else stableTimer = setTimeout(sendPhrase, 800);
   };
   rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { status('Нет доступа к микрофону/распознаванию. Разрешите в настройках Safari.', 'err'); stop(); } };
   rec.onend = () => { if (running && isRecMode()) { sendPhrase(); setTimeout(() => { if (running) { try { startRecognition(); } catch (e) {} } }, 250); } };
@@ -407,7 +415,7 @@ function sendPhrase() {
         { ru: { type: 'STRING' } }, false);
       ru = r.ru;
     } else ru = await googleFree(de);
-    deliver(de, ru);
+    return { de, ru };
   });
 }
 function stopRecognition() {
