@@ -258,13 +258,13 @@ async function gemini(parts, schemaProps, audio) {
       responseSchema: { type: 'OBJECT', properties: schemaProps, required: Object.keys(schemaProps) }
     }
   };
-  if (!noThinkingCfg) body.generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  if (!noThinkingCfg) body.generationConfig.thinkingConfig = { thinkingLevel: 'minimal' };
   const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(S.model) + ':generateContent';
   countRequest();
   const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': S.apiKey }, body: JSON.stringify(body) });
   if (!res.ok) {
     const t = await res.text();
-    if (res.status === 400 && /thinking/i.test(t) && !noThinkingCfg) { noThinkingCfg = true; return gemini(parts, schemaProps, audio); }
+    if (res.status === 400 && !noThinkingCfg) { noThinkingCfg = true; return gemini(parts, schemaProps, audio); }
     const err = new Error(res.status === 429 ? 'Бесплатный лимит Gemini исчерпан (подождите или смените режим)' :
       res.status === 400 || res.status === 403 ? 'Ключ или модель не подходят: ' + t.slice(0, 160) : 'Ошибка Gemini ' + res.status);
     err.status = res.status; throw err;
